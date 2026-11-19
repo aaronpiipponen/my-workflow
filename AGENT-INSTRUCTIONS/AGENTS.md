@@ -89,7 +89,7 @@ orchestrator's living handoff; child agents do not read or edit it.
 If a task conflicts with these instructions, stop and ask.
 
 Resume an interrupted or unfinished subagent in its exact session when continuing its authorized
-task. No additional user approval is needed for that continuation. Resuming a fully finished
+task. A subagent that skipped part of its own workflow is unfinished. No additional user approval is needed for that continuation. Resuming a fully finished
 subagent requires explicit user approval; otherwise use a fresh session for follow-up work.
 Preserve user stop instructions, unresolved user-owned decisions, hard invariants and tool
 boundaries. Report an actual tool refusal accurately instead of inventing one or silently

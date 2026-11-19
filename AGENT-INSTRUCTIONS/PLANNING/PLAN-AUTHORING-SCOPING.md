@@ -254,6 +254,13 @@ Boundary rules:
     further. It must still report it, as an out-of-scope observation with the evidence it already
     has.
   - Dispatch prompts must not tell scouts to report only on the diff.
+- **Survey rounds.** The second round is a full survey from the branch start; later rounds survey
+  the previous round's diff. Fix clear defects and drift from the user's decisions in remediation
+  rounds. A change is "big" only when that single change would need a whole phase of its own,
+  judged against completed phases; ten medium changes that together fill a phase are not big. A big
+  change that fixes broken behavior toward the intended state is made; a big change of correct
+  behavior only to be cleaner, a fix that drifts from a requirement, and every user-owned decision
+  go to the survey note's user-review list instead.
 - **Survey loop stop.** A remediation made only of small, checked one-line
   fixes needs no further delta survey. When a round leaves only a couple of small documentation
   changes, make them and end the loop.
@@ -346,7 +353,9 @@ Add subsystem-specific rules from stable architecture docs and current code.
 When a phase completes, its detailed `phases/<id>.md` file is compressed into a
 `done/<id>.md` stub holding only the frozen contract later phases consume — the
 detailed build instructions are retired so they cannot mislead future detailing. The
-`full-plan.md` status table row flips to `done` and repoints at the stub.
+`full-plan.md` status table row flips to `done` and repoints at the stub, and the completed phase's
+description in `full-plan.md` is replaced by a pointer to that stub. Keep future scope, binding
+decisions and standing rules; remove only finished execution detail.
 
 Use this shape for `done/<id>.md`:
 
@@ -444,6 +453,10 @@ Avoid in this document:
 - checklist boxes detailed enough for implementation.
 
 Those belong in the detailed-phase expansion.
+
+Scoped is not thin: each phase section carries its intent and decisions in enough detail to be used
+from a completely fresh context without reopening them. A one-sentence description of a big phase
+is not adequate.
 
 ---
 

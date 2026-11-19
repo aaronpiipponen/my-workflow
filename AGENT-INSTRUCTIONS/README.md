@@ -62,6 +62,9 @@ Examples:
 
 When a change could belong to more than one case, stop and ask the user instead of choosing.
 
+Show the user the exact text of an instruction or workflow change and get approval before editing,
+unless the user has already said to write the changes.
+
 ## Adding a generic rule
 
 - Put it in the shared file that owns the area. Keep the existing heading and section numbering; do

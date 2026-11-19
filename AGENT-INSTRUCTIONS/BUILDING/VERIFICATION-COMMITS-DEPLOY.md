@@ -17,6 +17,15 @@ Set no artificial run caps. Fix in-scope product/test/harness errors and rerun a
 disclosing corrections without weakening assertions. Reuse passing evidence on unchanged behavior.
 A phase prohibition on browser work still applies.
 
+**External claims.** Never claim that a site, page or service outside the shell works without
+browser or screenshot evidence of it.
+
+**Disposable resources.** Take a baseline listing before the first Docker or test run of any kind,
+development runs included: containers, volumes, networks, databases, Docker images (tagged and
+untagged) and the build cache whenever a build runs. Remove every temporary process, build,
+container, volume, database, browser profile and scratch file the work creates, and prove the
+removal against that baseline. A failed cleanup blocks completion.
+
 **Focused reruns.** Diagnose from the code before changing it. Run individual failing tests by
 node id first. Do not rerun passing tests on unchanged code, and run each required full suite only
 once at the end.
