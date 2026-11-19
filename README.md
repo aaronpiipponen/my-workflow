@@ -61,7 +61,8 @@ skill delivers the procedure itself and the procedure keeps one authoritative ho
 hook: it reads the bindings map on each request and injects each agent's sections, plus the role's
 files in a session started with `/plan` or `/release`, which it registers from `COMMANDS/`. It
 registers the skills with their shared text and the `phase_new` tool, holds edits to the
-instruction tree until the `agent-instructions` skill is loaded, and refuses shell writes to it. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
+instruction tree until the `agent-instructions` skill is loaded, and refuses shell writes to it.
+After editing instruction files, run `/workflow-reload` in the working session to apply them. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
 child reports so the caller can use the answer in the same turn. `PLUGINS/opencode-keepalive/`
 warms the prompt cache of the orchestration models the checkout selects. The shadow orchestrator
 plugin belongs to the orchestrators above.

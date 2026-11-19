@@ -82,7 +82,7 @@ function workspace(shape = {}) {
   return root
 }
 
-// A workflow repository with one skill and one command, beside the checkout it governs.
+// Build a workflow repository with one skill and one command, beside its checkout.
 function workflowRepo() {
   const root = mkdtempSync(path.join(tmpdir(), "wf-repo-"))
   const files = {
@@ -206,7 +206,7 @@ check("an agent absent from the matrix gets no context", unknown.system.length =
 const outsider = await run("s4", "phase-implementer", roots.other)
 check("a workspace outside the bindings gets no context", outsider.system.length === 0)
 
-// setup-repo adds a workspace while the service runs, so the next request must see the change.
+// Check that a workspace registered while the service runs takes effect on the next request.
 const late = harness(roots.main, { workspaces: [] })
 await plugin.setup(late.ctx)
 const before = await (async () => {
@@ -226,8 +226,7 @@ const after = await (async () => {
 })()
 check("a workspace registered while running is picked up without a restart", after > 0)
 
-// Injected text is snapshotted per session: an edit reaches a new session at once, but an existing
-// session keeps its prefix until /workflow-reload, so a batch of edits voids the cache only once.
+// Check that an edit reaches a fresh session at once, but a snapshotted one only on reload.
 const snapRoot = workspace()
 const snap = harness(snapRoot, {
   agents: { build: [{ file: "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md", sections: ["0"] }] },
@@ -320,7 +319,7 @@ for (const command of reads) {
   check(`allows: ${command.slice(0, 40)}`, (await evaluate("s20", command)).effect === "allow")
 }
 check("denies the long in-place flag", (await evaluate("s18", "sed --in-place 's/a/b/' AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md")).effect === "deny")
-// A workflow command marks its session, and the session then receives the role's files.
+// Check that a workflow command marks its session for role file delivery.
 const roled = harness(roots.main, {
   bindings: {
     agents: { build: [{ file: "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md" }] },
@@ -350,7 +349,7 @@ check("a file the agent already gets is not repeated", roleText.split("current s
 const skill = roled.captured.skills.find((entry) => entry.id === "debugging")
 check("a skill carries its guidance and the shared text", skill?.content.includes("Follow the loop.") && skill.content.includes("debugging loop text"))
 
-// Edits to the instruction tree are held until the session has loaded the agent-instructions skill.
+// Check that instruction edits are held until the agent-instructions skill is loaded.
 const edit = async (sessionID, file) => {
   const event = { sessionID, action: "edit", resources: [file], effect: "allow" }
   await roled.captured.evaluate(event)

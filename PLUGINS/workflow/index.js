@@ -1,17 +1,10 @@
-// Deliver the workflow's instruction text and phase scaffolding to the agents that need it.
+// Deliver the workflow's instruction text, commands and phase scaffolding to agents.
 //
-// The context hook appends each agent's declared files to the system prompt, so the text cannot be
-// forgotten. It builds that text once per session and reuses it byte-for-byte on later requests:
-// changing the prefix voids the prompt cache, so edits do not take effect until `/workflow-reload`.
-// A session started with one of the workflow commands (`/plan`, `/release`) also receives that role's
-// files. A checkpoint's bindings list which workspaces the hook applies to and, when it differs from
-// the default matrix, which agents and roles.
-//
-// The plugin also owns the workflow commands, registers the workflow skills with the shared text
-// they name as their content, and holds edits to the instruction tree until the session has loaded
-// the `agent-instructions` skill.
-//
-// The pure helpers stay exported for the test suite.
+// The context hook builds each agent's injected text once per session and reuses it byte-for-byte,
+// so a file edit reaches the session only on `/workflow-reload`. A session started with `/plan` or
+// `/release` also receives that role's files. The plugin registers commands and skills,
+// holds instruction edits until the `agent-instructions` skill is loaded, and refuses shell writes
+// to the instruction tree. The pure helpers are exported for the test suite.
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import path from "node:path"
@@ -28,22 +21,19 @@ const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?/
 const SECTION_HEADING = /^##\s+(.+)$/
 const NUMBERED_HEADING = /^(\d+[a-z]?)\.\s+(.*)$/
 const PHASE_FENCE = /```markdown\n([\s\S]*?)```/g
-// The instruction tree is written with the edit tool only: it writes through the shared-text
-// symlinks, and its permission check holds an edit until the `agent-instructions` skill is loaded.
-// A shell command that names an instruction file and writes is refused. Product code is left
-// alone: the agents use `sed -i` there. Known gap: a command that reaches an instruction file
-// through the tool's own workdir without naming it. `setup-repo.py --check` is the backstop for
-// detached links.
-// The plan folders, the scope fence and the orchestrator handoff are working state, not rules.
+// The edit tool writes through the shared-text symlinks and holds an edit until the
+// `agent-instructions` skill is loaded. A shell command that names an instruction file and writes
+// is refused. A command that reaches such a file through the tool's workdir without naming it is
+// left to `setup-repo.py --check`. The plan folders, scope fence and handoff are working state.
 const WORKING_STATE = /^(?:PLANS|CURRENT-SCOPE\.md|ORCHESTRATOR-HANDOFF\.md)$/
 const INSTRUCTION_FILE =
   /AGENT-INSTRUCTIONS\/(?!PLANS\/|CURRENT-SCOPE\.md|ORCHESTRATOR-HANDOFF\.md)[\w.-]|(?:^|[\s"'=/])AGENTS\.md\b/
-// A redirection or `tee` writes only its target; every other writer is judged by the instruction
-// file the command names.
+// A redirection or `tee` writes only its target; other writers are judged by the named file.
 const REDIRECT_TARGET = /(?:^|[^<>0-9&])>>?\s*(['"]?)([^\s'";|&<>]+)\1|\btee\b((?:\s+-[a-z-]+)*\s+[^|;&]+)/g
 const WRITER =
   /\b(?:sed|perl)\b[^|;&]*\s(?:-[a-zA-Z]*i|--in-place)\b|\b(?:mv|cp|rm|ln|install|truncate|touch|dd)\b|\b(?:python3?|node|ruby|perl)\b[\s\S]*(?:\bwrite|\bopen\s*\([^)]*['"][wax]|\bunlink\b|\brename\b|\bwrite_text\b)/
 
+/** Report whether a shell command writes a file in the instruction tree. */
 export function writesInstructions(command) {
   for (const match of command.matchAll(REDIRECT_TARGET)) {
     if (INSTRUCTION_FILE.test(match[2] ?? match[3] ?? "")) return true
@@ -51,9 +41,12 @@ export function writesInstructions(command) {
   return WRITER.test(command) && INSTRUCTION_FILE.test(command)
 }
 
-// Split a rule document into its preamble and its level-two sections, keeping the headings. A
-// section is addressable by its number when it has one ("3a") and by its title otherwise
-// ("Content rules"), so a binding selects the text a role needs and nothing else.
+/**
+ * Split a rule document into its preamble and level-two sections, keeping the headings.
+ *
+ * A section is addressable by its number when it has one ("3a") and by its title otherwise
+ * ("Content rules").
+ */
 export function splitSections(text) {
   const preamble = []
   const sections = new Map()
@@ -79,7 +72,7 @@ export function splitSections(text) {
   return { preamble, sections }
 }
 
-// Return the requested sections in the order asked for, so bindings control the reading order.
+/** Return the requested sections in the order asked for. */
 export function selectSections(text, ids, file) {
   const { preamble, sections } = splitSections(text)
   const body = [...preamble]
@@ -91,7 +84,7 @@ export function selectSections(text, ids, file) {
   return body.join("\n").trim()
 }
 
-// Extract the fenced skeleton a phase template offers; the product shape is the first one.
+/** Extract the fenced skeleton from a phase template; the product shape is first. */
 export function renderPhase(template, { id, title, kind }) {
   const blocks = [...template.matchAll(PHASE_FENCE)].map((match) => match[1])
   const skeleton = kind === "experiment" ? blocks[1] : blocks[0]
@@ -111,15 +104,18 @@ function pathSegments(value) {
   return path.resolve(value).split(path.sep).filter(Boolean)
 }
 
-// Compare whole path segments, so /projects-two never matches a /projects entry.
+/** Compare whole path segments, so /projects-two never matches a /projects entry. */
 export function isPathPrefix(prefix, target) {
   if (prefix.length > target.length) return false
   return prefix.every((segment, index) => segment === target[index])
 }
 
-// The "*" key applies to every agent in the workspace, ahead of the agent's own entries, and a
-// session's role adds its entries last. An entry that an earlier list already names with the same
-// sections is delivered once.
+/**
+ * Return the bindings that apply to an agent and role, in delivery order.
+ *
+ * The "*" entries come first, the agent's next and the role's last. An entry that an earlier list
+ * names with the same sections is delivered once.
+ */
 export function entriesFor(bindings, agent, role) {
   const lists = [
     ["*", bindings.agents?.["*"] ?? []],
@@ -140,7 +136,7 @@ export function entriesFor(bindings, agent, role) {
   return entries
 }
 
-// Split a workflow Markdown file into its flat `key: value` front matter and its body.
+/** Split a workflow Markdown file into its flat front matter and its body. */
 export function parseFrontmatter(text, file) {
   const match = FRONTMATTER.exec(text)
   if (!match) throw new Error(`${file}: no front matter`)
@@ -154,16 +150,14 @@ export function parseFrontmatter(text, file) {
   return { fields, body: text.slice(match[0].length).trim() }
 }
 
-// A command's prompt is its body with the user's arguments in place of `$ARGUMENTS`, or appended
-// when the body names no place for them.
+/** Place a command's arguments at `$ARGUMENTS`, or append them when it names no place. */
 export function renderCommand(body, args) {
   const text = (args ?? "").trim()
   if (body.includes("$ARGUMENTS")) return body.replaceAll("$ARGUMENTS", text)
   return text ? `${body}\n\n${text}` : body
 }
 
-// The instruction tree outside the plan folders, in the checkout or in the workflow repository
-// itself, plus the bootstrap `AGENTS.md`.
+/** Report whether a file in either tree is part of the instruction tree. */
 export function isInstructionPath(file, workspace, workflow) {
   const inside = (root) => {
     const relative = path.relative(root, file).split(path.sep)
@@ -174,7 +168,7 @@ export function isInstructionPath(file, workspace, workflow) {
   return path.relative(workspace, file) === "AGENTS.md" || inside(workspace) || inside(workflow)
 }
 
-// Every workflow skill: its front matter, its guidance and the shared file whose text it carries.
+/** Read every workflow skill: its front matter, guidance and source file. */
 export function readSkills(workflow) {
   const root = path.join(workflow, "SKILLS")
   return readdirSync(root, { withFileTypes: true })
@@ -189,8 +183,7 @@ export function readSkills(workflow) {
     })
 }
 
-// A skill reaches a session as a user attachment (a `skill` message) or as a completed `skill`
-// tool call the model made.
+/** Report whether a message loaded a skill, as an attachment or a completed tool call. */
 export function loadsSkill(message, id) {
   if (message.type === "skill") return message.skill === id
   if (message.type !== "assistant") return false
@@ -203,13 +196,13 @@ export function loadsSkill(message, id) {
   )
 }
 
+/** Return a skill's guidance followed by its source file's text. */
 export function skillContent(skill) {
   const source = readFileSync(skill.sourceFile, "utf8").trim()
   return `${skill.body}\n\n<!-- skill-source: ${skill.source} -->\n${source}`
 }
 
-// Resolve one entry to the text to inject. Relative paths resolve against the workspace, so a
-// symlinked AGENT-INSTRUCTIONS/ and a direct checkout behave the same.
+/** Resolve one binding entry to its injected text, relative to the workspace. */
 export function loadEntry(workspace, entry) {
   const file = path.resolve(workspace, entry.file)
   if (!existsSync(file)) {
@@ -237,13 +230,12 @@ export default {
       try {
         writeFileSync(logFile, `${new Date().toISOString()} workflow: ${line}\n`, { flag: "a" })
       } catch {
-        // A failed log write cannot be reported through the log.
+        // A failed log write has no other channel to report through.
       }
     }
 
-    // The local file is machine state: which checkouts this plugin governs, plus optional
-    // per-agent and per-role overrides. `setup-repo.py` adds a workspace while the service is
-    // running, so the two files are re-read whenever either changes rather than only at plugin load.
+    // The local file holds the governed workspaces and optional overrides. Both files are read on
+    // each change so a workspace that `setup-repo.py` adds while the service runs takes effect.
     const stampOf = (file) => {
       try {
         const stat = statSync(file)
@@ -286,8 +278,7 @@ export default {
       return settings().workspaces.some((prefix) => isPathPrefix(prefix, target))
     }
 
-    // A workflow command marks its session with the command's role. The mark is durable, so a
-    // restarted service still delivers the role's files to that session.
+    // A workflow command marks its session's role durably, preserving those files across a restart.
     const roleOf = async (sessionID) => {
       if (roles.has(sessionID)) return roles.get(sessionID)
       const stored = await ctx.storage.get(`role/${sessionID}`)
@@ -295,9 +286,8 @@ export default {
       return typeof stored === "string" ? stored : undefined
     }
 
-    // Skills carry the shared text as their content. The registry changes only on an explicit
-    // `/workflow-reload`; a source edit alone never reloads it, because changing the system prompt
-    // voids the prompt cache. A malformed skill fails the reload, not the plugin load.
+    // The skill registry changes on `/workflow-reload` only: a source edit alone would change the
+    // system prompt and void the cache. A malformed skill fails that reload, not the plugin load.
     await ctx.session.hook("context", async (event) => {
       const directory = await workspaceOf(event.sessionID)
       if (!directory || !governs(directory)) return
@@ -315,8 +305,7 @@ export default {
       if (parts.length) event.system.push(...parts)
     })
 
-    // Edits to the instruction tree wait until the session has loaded the skill that says where a
-    // rule belongs. The plan folders are working state and are not held.
+    // Hold instruction edits until the session has loaded the `agent-instructions` skill.
     const hasReadme = async (sessionID) => {
       if (readmeLoaded.has(sessionID)) return true
       const messages = await ctx.session.context({ sessionID })
@@ -325,9 +314,7 @@ export default {
       return loaded
     }
 
-    // A rename-based writer replaces a symlink with a regular file, which detaches the checkout
-    // from the workflow while the text still looks right. Only shared workflow text is refused;
-    // the agents use in-place editors on product code and that is fine.
+    // A rename over a symlink detaches the checkout from the workflow while the text looks right.
     await ctx.permission.hook("evaluate", async (event) => {
       if (event.action === "edit") {
         const directory = await workspaceOf(event.sessionID)
@@ -348,7 +335,7 @@ export default {
         const directory = await workspaceOf(event.sessionID)
         if (!directory || !governs(directory)) continue
         event.effect = "deny"
-        // Naming the missing skill here saves the edit tool's own refusal on the retry.
+        // Name the missing skill so the retry does not need a second refusal.
         const skill = (await hasReadme(event.sessionID))
           ? ""
           : `Load the \`${README_SKILL}\` skill first; the edit tool holds instruction edits until it is loaded. `
@@ -375,8 +362,7 @@ export default {
       }
     })
 
-    // The orchestrator commands. Each one marks its session's role, then sends the command's
-    // prompt as the user's message.
+    // Register the orchestrator commands from their prompt files.
     await ctx.command.transform((editor) => {
       if (!location || !governs(location)) return
       const root = path.join(workflow, "COMMANDS")
@@ -396,9 +382,7 @@ export default {
           },
         })
       }
-      // One deliberate refresh for a batch of instruction edits: drop every session's snapshot
-      // and reload the skill registry. Both change the system prompt, so this is the single point
-      // where a cache void is expected.
+      // Apply a batch of edits once: both actions change the system prompt and void its cache.
       editor.add({
         name: "workflow-reload",
         description: "Apply workflow instruction edits from disk now, instead of on the next session.",
