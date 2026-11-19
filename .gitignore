@@ -1,0 +1,14 @@
+.opencode/
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+PLUGINS/workflow/bindings.json
+PLUGINS/*/config.json
+PLUGINS/*/state.json
+PLUGINS/*/*.log

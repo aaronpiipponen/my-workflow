@@ -1,0 +1,273 @@
+{
+  "_comment": "Default role-context matrix. Paths resolve against the workspace, so a symlinked AGENT-INSTRUCTIONS/ and a direct checkout behave the same. The \"*\" entry applies to every agent. A binding selects `sections` by number or by heading title, so each role receives only the rules its work needs.",
+  "agents": {
+    "*": [
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/project.md",
+        "optional": true
+      }
+    ],
+    "phase-implementer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b",
+          "3a",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/VERIFICATION-COMMITS-DEPLOY.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/WORKING-FROM-PLANS.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/gates.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/deploy.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "optional": true,
+        "sections": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "phase-advancer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b",
+          "3a",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/VERIFICATION-COMMITS-DEPLOY.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/WORKING-FROM-PLANS.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/gates.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/deploy.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "optional": true,
+        "sections": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "invariant-reviewer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b",
+          "3a",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "optional": true,
+        "sections": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "phase-implementation-reviewer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b",
+          "3a",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "optional": true,
+        "sections": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "phase-spec-auditor": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b",
+          "3a",
+          "4",
+          "5"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "optional": true,
+        "sections": [
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    ],
+    "document-writer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-STYLE-GUIDE.md",
+        "sections": [
+          "Content rules",
+          "Writing rules",
+          "Terminology and values",
+          "Interface wording and translations",
+          "Markdown documents",
+          "Process",
+          "Self-check",
+          "Closing report"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-WORKFLOW.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/docs-tools.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/style-guide-examples.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/document-writer.md",
+        "optional": true
+      }
+    ],
+    "comment-writer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-STYLE-GUIDE.md",
+        "sections": [
+          "Content rules",
+          "Writing rules",
+          "Terminology and values",
+          "Code documentation"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/style-guide-examples.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/comment-writer.md",
+        "optional": true
+      }
+    ],
+    "report-writer": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-STYLE-GUIDE.md",
+        "sections": [
+          "Content rules",
+          "Writing rules",
+          "Terminology and values"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-WORKFLOW.md"
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/docs-tools.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/report-writer.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md",
+        "optional": true
+      }
+    ],
+    "ops-scout": [
+      {
+        "file": "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+        "sections": [
+          "0",
+          "0a",
+          "0b"
+        ]
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md",
+        "optional": true
+      },
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/ops-scout.md",
+        "optional": true
+      }
+    ],
+    "seam-scout": [
+      {
+        "file": "AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md",
+        "sections": [
+          "2"
+        ]
+      }
+    ]
+  }
+}
