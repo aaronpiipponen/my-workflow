@@ -1,10 +1,11 @@
 // Deliver the workflow's instruction text and phase scaffolding to the agents that need it.
 //
-// The context hook appends each agent's declared files to the system prompt of every request,
-// so the text cannot be forgotten and needs no read. A session started with one of the workflow
-// commands (`/plan`, `/release`) also receives that role's files. A checkpoint's bindings list
-// which workspaces the hook applies to and, when it differs from the default matrix, which agents
-// and roles.
+// The context hook appends each agent's declared files to the system prompt, so the text cannot be
+// forgotten. It builds that text once per session and reuses it byte-for-byte on later requests:
+// changing the prefix voids the prompt cache, so edits do not take effect until `/workflow-reload`.
+// A session started with one of the workflow commands (`/plan`, `/release`) also receives that role's
+// files. A checkpoint's bindings list which workspaces the hook applies to and, when it differs from
+// the default matrix, which agents and roles.
 //
 // The plugin also owns the workflow commands, registers the workflow skills with the shared text
 // they name as their content, and holds edits to the instruction tree until the session has loaded
@@ -21,6 +22,7 @@ const WORKFLOW_DIR = path.resolve(PLUGIN_DIR, "..", "..")
 const WORKSPACE_KEY = Symbol.for("opencode.workflow.workspaces")
 const ROLE_KEY = Symbol.for("opencode.workflow.roles")
 const README_KEY = Symbol.for("opencode.workflow.readme")
+const INJECTION_KEY = Symbol.for("opencode.workflow.injections")
 const README_SKILL = "agent-instructions"
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?/
 const SECTION_HEADING = /^##\s+(.+)$/
@@ -269,6 +271,7 @@ export default {
     const directories = shared
     const roles = (globalThis[ROLE_KEY] ??= new Map())
     const readmeLoaded = (globalThis[README_KEY] ??= new Set())
+    const injections = (globalThis[INJECTION_KEY] ??= new Map())
 
     const workspaceOf = async (sessionID) => {
       if (directories.has(sessionID)) return directories.get(sessionID)
@@ -292,25 +295,22 @@ export default {
       return typeof stored === "string" ? stored : undefined
     }
 
-    // Skills carry the shared text as their content, so a changed source reaches the next skill
-    // load. The context hook runs before every model call and reloads the skills when a skill or
-    // its source changed since the last registration. A malformed skill fails that request, not
-    // the plugin load, so injection keeps working for every other session.
-    const skillStamp = () =>
-      readSkills(workflow)
-        .map((skill) => `${stampOf(skill.file)}|${stampOf(skill.sourceFile)}`)
-        .join(",")
-    let registeredSkills = null
-
+    // Skills carry the shared text as their content. The registry changes only on an explicit
+    // `/workflow-reload`; a source edit alone never reloads it, because changing the system prompt
+    // voids the prompt cache. A malformed skill fails the reload, not the plugin load.
     await ctx.session.hook("context", async (event) => {
       const directory = await workspaceOf(event.sessionID)
       if (!directory || !governs(directory)) return
-      if (registeredSkills !== skillStamp()) await ctx.skill.reload()
       const role = await roleOf(event.sessionID)
-      const parts = []
-      for (const entry of entriesFor(settings(), event.agent, role)) {
-        const text = loadEntry(directory, entry)
-        if (text && text.trim()) parts.push({ type: "text", text: `<!-- role-context: ${entry.file} -->\n${text}` })
+      const key = `${event.sessionID}|${event.agent}|${role ?? ""}`
+      let parts = injections.get(key)
+      if (!parts) {
+        parts = []
+        for (const entry of entriesFor(settings(), event.agent, role)) {
+          const text = loadEntry(directory, entry)
+          if (text && text.trim()) parts.push({ type: "text", text: `<!-- role-context: ${entry.file} -->\n${text}` })
+        }
+        injections.set(key, parts)
       }
       if (parts.length) event.system.push(...parts)
     })
@@ -364,7 +364,6 @@ export default {
 
     await ctx.skill.transform((editor) => {
       if (!location || !governs(location)) return
-      registeredSkills = skillStamp()
       for (const skill of readSkills(workflow)) {
         editor.add({
           id: skill.id,
@@ -397,6 +396,18 @@ export default {
           },
         })
       }
+      // One deliberate refresh for a batch of instruction edits: drop every session's snapshot
+      // and reload the skill registry. Both change the system prompt, so this is the single point
+      // where a cache void is expected.
+      editor.add({
+        name: "workflow-reload",
+        description: "Apply workflow instruction edits from disk now, instead of on the next session.",
+        execute: async () => {
+          injections.clear()
+          await ctx.skill.reload()
+          log("injection and skills reloaded")
+        },
+      })
     })
 
     await ctx.tool.transform((editor) => {

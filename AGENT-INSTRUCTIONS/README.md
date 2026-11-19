@@ -9,6 +9,13 @@ an agent as the `agent-instructions` skill, and the plugin holds edits to the in
 outside `PLANS/`, `CURRENT-SCOPE.md` and `ORCHESTRATOR-HANDOFF.md` until that skill is loaded. Write
 those files with the edit tool; the plugin refuses a shell command that writes them.
 
+**After editing anything in this tree (shared or a `LOCAL/` slot), run `/workflow-reload` in the
+session you are working in.** The plugin snapshots the injected text per session so a batch of
+edits does not void the prompt cache on each save; the snapshot changes only when you run that
+command. Until you do, the editing session keeps the old rules, and a fresh session is the only
+other thing that reads the new ones. Make the reload the last step of the edit, after all the files
+are saved.
+
 This file is part of the workflow repository, linked into the checkout as
 `AGENT-INSTRUCTIONS/README.md`. The tooling paths it names (`SETUP/`, `PLUGINS/`, `SKILLS/`,
 `COMMANDS/`) live in that repository, at the directory the link resolves to, not in the checkout.
@@ -120,7 +127,7 @@ failure this tree exists to prevent.
 ## Before you finish
 
 Edit prose by reading and rewriting it with the edit tool; a script or blind replacement mangles it. Verify nothing was
-lost, then run both checks.
+lost, then run `/workflow-reload` so this session uses the saved edits, and run both checks.
 
 ```sh
 # from this workflow repository

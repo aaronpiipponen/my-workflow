@@ -117,7 +117,7 @@ function harness(root, { workspaces = [root], agents, bindings } = {}) {
   writeFileSync(defaultsFile, JSON.stringify(defaults))
   writeFileSync(localFile, JSON.stringify({ workspaces }))
 
-  const captured = { hook: null, tools: [], asserted: [], skills: [], commands: [], prompts: [], messages: [] }
+  const captured = { hook: null, tools: [], asserted: [], skills: [], commands: [], prompts: [], messages: [], skillReloads: 0 }
   const store = new Map()
   const ctx = {
     options: { bindings: localFile, defaults: defaultsFile, workflow: workflowRepo() },
@@ -131,7 +131,9 @@ function harness(root, { workspaces = [root], agents, bindings } = {}) {
         callback({ add: (skill) => captured.skills.push(skill) })
         return { dispose: async () => {} }
       },
-      reload: async () => {},
+      reload: async () => {
+        captured.skillReloads++
+      },
     },
     command: {
       transform: async (callback) => {
@@ -223,6 +225,31 @@ const after = await (async () => {
   return event.system.length
 })()
 check("a workspace registered while running is picked up without a restart", after > 0)
+
+// Injected text is snapshotted per session: an edit reaches a new session at once, but an existing
+// session keeps its prefix until /workflow-reload, so a batch of edits voids the cache only once.
+const snapRoot = workspace()
+const snap = harness(snapRoot, {
+  agents: { build: [{ file: "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md", sections: ["0"] }] },
+})
+await plugin.setup(snap.ctx)
+const snapRun = async (sessionID) => {
+  const event = { sessionID, agent: "build", system: [], messages: [], tools: {}, options: {} }
+  await snap.captured.hook(event)
+  return event.system.map((part) => part.text).join("\n")
+}
+const initial = await snapRun("snap-a")
+check("a session snapshots the injected text", initial.includes("method zero"))
+snap.ctx.session.get = async () => ({ location: { directory: snapRoot } })
+writeFileSync(path.join(snapRoot, "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md"), "# Rules\n\n## 0. Changed\n\nnew method\n")
+check("an edit does not change an existing session's prefix", (await snapRun("snap-a")).includes("method zero"))
+check("a fresh session reads the edited file", (await snapRun("snap-b")).includes("new method"))
+check("no skill reload happened on ordinary requests", snap.captured.skillReloads === 0)
+const reloadCommand = snap.captured.commands.find((command) => command.name === "workflow-reload")
+check("registers /workflow-reload", typeof reloadCommand?.execute === "function")
+await reloadCommand.execute({ sessionID: "snap-a" })
+check("/workflow-reload reloads the skill registry once", snap.captured.skillReloads === 1)
+check("/workflow-reload updates the existing session", (await snapRun("snap-a")).includes("new method"))
 
 let missingThrew = false
 const missing = harness(roots.main, {
