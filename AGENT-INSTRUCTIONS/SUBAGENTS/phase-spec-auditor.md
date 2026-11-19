@@ -18,9 +18,8 @@ choices. Report gaps. Do not rewrite the phase.
 You audit product phases only. If the phase has gate level `experiment`, output
 `PASS - experiment brief, not audited` and stop.
 
-`AGENT-INSTRUCTIONS/PLANNING/PLAN-PHASE-DETAILING.md` — especially §4 (detail bar) and
-§6 (no-invention / no deferred decisions), and the shape in
-`AGENT-INSTRUCTIONS/PLANNING/phase-template.md`.
+The phase detailing guide's §4 (detail bar) and §6 (no-invention / no deferred decisions), and the
+shape in the phase template, both injected above.
 
 ## Checks
 

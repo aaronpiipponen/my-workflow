@@ -32,8 +32,8 @@ made, not left for the release to replace.
 
 - The style guide governs every written artifact in the change, not only the Markdown pages: file
   headers, doc comments, configuration, ignore-file and script comments, test names and
-  comments, and the interface wording and its translations in the interface wording file. Read
-  `DOCUMENTATION-STYLE-GUIDE.md` before writing or editing any of them, and fix the prose the
+  comments, and the interface wording and its translations in the interface wording file. Apply
+  `DOCUMENTATION-STYLE-GUIDE.md` to every one of them, and fix the prose the
   change makes stale there too. A new or changed interface string reads naturally in every language
   the checkout translates, never as a word-for-word copy.
 - The implementer updates the affected pages in the same change as the code and the tests, to the

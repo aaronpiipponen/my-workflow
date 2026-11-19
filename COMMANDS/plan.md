@@ -44,12 +44,10 @@ user gate requires me, or the authorized work is ready for my acceptance. Never 
 irreversible-data, security, public-exposure, spending or release boundaries, or approvals I
 explicitly reserved. Autonomous mode does not authorize plan closure or model changes.
 
-**Reading.** The current handoff is inserted below; follow it. Read
-`AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md`, `AGENT-INSTRUCTIONS/PLANNING/PLAN-AUTHORING-SCOPING.md`,
-`AGENT-INSTRUCTIONS/BUILDING/WORKING-FROM-PLANS.md` and
-`AGENT-INSTRUCTIONS/BUILDING/VERIFICATION-COMMITS-DEPLOY.md`. Determine once whether my
-instructions authorize phase commits; if not, request standing authorization before the first
-commit gate.
+**Rules and handoff.** The repository rules, the plan authoring and scoping guide, the
+plan-execution rules, the verification protocol and the current handoff are injected into this
+session; follow them. Determine once whether my instructions authorize phase commits; if not,
+request standing authorization before the first commit gate.
 
 **Subagents.** Spawn every one in the background, never the foreground (this keeps the cache
 warm), one child at a time, except read-only `ops-scout`, which you may run several of at once on
@@ -171,7 +169,3 @@ a `Learned rules` list of workflow rules I give you (merge, never append near-du
 copy settled requirements or add history. It is gitignored: never commit it.
 
 **This plan:** $ARGUMENTS
-
-**Current handoff:**
-
-!`cat AGENT-INSTRUCTIONS/ORCHESTRATOR-HANDOFF.md`

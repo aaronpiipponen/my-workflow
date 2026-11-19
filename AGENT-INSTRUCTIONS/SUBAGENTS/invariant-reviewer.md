@@ -18,9 +18,9 @@ restating what the code does, no suggestions outside the rules below.
 - The caller's named file list, read in full.
 - The repository rules are injected above. §0 no-hack rules, §2 hard invariants and §3
   docs-stay-accurate are the standard you review against.
-- `AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-STYLE-GUIDE.md`, when the diff changes governed prose
-  (a page, README prose, a file header, a doc comment, a configuration, ignore-file or script
-  comment, or test text); the caller names it so the style checks rest on the guide.
+- The documentation style guide's rules, injected above, when the diff changes governed prose (a
+  page, README prose, a file header, a doc comment, a configuration, ignore-file or script comment,
+  or test text), so the style checks rest on the guide.
 - The `docs/` developer pages the caller names. Source
   stays the authority.
 

@@ -4,16 +4,17 @@ Usage:
     python SETUP/setup-machine.py
     python SETUP/setup-machine.py --check
 
-It does three things and nothing else:
+It does these things and nothing else:
 
 - checks that the two imported plugins are checked out (the submodules), and copies each plugin's
   ``config.example.json`` to ``config.json`` when that file is absent;
 - creates the workflow plugin's ``bindings.json`` from its example when absent, because the list of
   governed checkouts is machine state;
 - adds the four local plugin entries to the global ``~/.config/opencode/opencode.json`` if they are
-  missing, after backing the file up.
+  missing, and removes a skills entry for this repository's ``SKILLS/``, which the workflow plugin
+  registers itself, after backing the file up.
 
-An existing entry is never rewritten and a local configuration file is never touched, so the script
+An existing plugin entry is never rewritten and a local configuration file is never touched, so the script
 is safe to run again after an update. Per-checkout work is separate: run ``SETUP/setup-repo.py``
 inside the checkout.
 """
@@ -106,20 +107,19 @@ def main(argv):
             return 0
         config = {"$schema": "https://opencode.ai/config.json"}
 
-    # The procedure skills are one directory in this repository, so every session can load them
-    # without a copy per checkout.
-    skills = config.setdefault("skills", [])
+    # The workflow plugin registers the procedure skills with the shared text they carry. A skills
+    # source for the same directory would load them again as bare pointers, so it is removed.
+    skills = config.get("skills", [])
     skills_path = str(ROOT / "SKILLS")
-    if skills_path not in skills:
+    stale_skills = skills_path in skills
+    if stale_skills:
         if checking:
-            print(f"NEEDS    skills[] has no entry for {skills_path}")
-            missing_skills = True
+            print(f"NEEDS    skills[] lists {skills_path}; the workflow plugin registers those skills")
         else:
-            skills.append(skills_path)
-            print(f"added    skills[] entry for {skills_path}")
-            missing_skills = True
-    else:
-        missing_skills = False
+            skills.remove(skills_path)
+            if not skills:
+                del config["skills"]
+            print(f"removed  skills[] entry for {skills_path}")
 
     plugins = config.setdefault("plugins", [])
     present = {package_of(item) for item in plugins if package_of(item)}
@@ -160,12 +160,12 @@ def main(argv):
             print(f"added    plugins[] entry for {name}")
 
     if checking:
-        return 0 if not missing and not missing_skills and not dead else 1
+        return 0 if not missing and not stale_skills and not dead else 1
 
     if dead:
         return 1
 
-    if missing or missing_skills:
+    if missing or stale_skills:
         GLOBAL_CONFIG.parent.mkdir(parents=True, exist_ok=True)
         if existed:
             backup = GLOBAL_CONFIG.with_name(f"{GLOBAL_CONFIG.name}.bak-{int(time.time())}")

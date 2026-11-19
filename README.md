@@ -49,16 +49,19 @@ Every child receives only its own injected rules, and every caller owns the fina
 
 ### Skills
 
-`SKILLS/` holds six procedure skills: `debugging`, `documentation-style`, `documentation-workflow`,
-`plan-authoring`, `plan-detailing` and `plan-remediation`. Each skill is a short trigger file that
-points at the governing shared text instead of copying it. A model loads the procedure when the
-task matches, and the procedure has one authoritative home.
+`SKILLS/` holds seven procedure skills: `agent-instructions`, `debugging`, `documentation-style`,
+`documentation-workflow`, `plan-authoring`, `plan-detailing` and `plan-remediation`. Each
+`SKILL.md` holds the trigger, a short guidance paragraph and a `source` naming the governing shared
+file. The workflow plugin registers the skill with that file's text as its content, so loading the
+skill delivers the procedure itself and the procedure keeps one authoritative home.
 
 ### Plugins
 
 `PLUGINS/` supplies the runtime around the orchestrators. `PLUGINS/workflow/` is the role-context
-hook: it reads the bindings map on each request, injects each agent's sections, and registers the
-`phase_new` tool. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
+hook: it reads the bindings map on each request and injects each agent's sections, plus the role's
+files in a session started with `/plan` or `/release`, which it registers from `COMMANDS/`. It
+registers the skills with their shared text and the `phase_new` tool, holds edits to the
+instruction tree until the `agent-instructions` skill is loaded, and refuses shell writes to it. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
 child reports so the caller can use the answer in the same turn. `PLUGINS/opencode-keepalive/`
 warms the prompt cache of the orchestration models the checkout selects. The shadow orchestrator
 plugin belongs to the orchestrators above.
@@ -80,16 +83,17 @@ AGENT-INSTRUCTIONS/            everything a checkout receives
   BUILDING/ PLANNING/ PLANS/   shared text, linked into the checkout
   SUBAGENTS/                   canonical roles, generator, partials
   PUBLISHING/                  the exporter, the checkout's selection and its public assets
-COMMANDS/                      plan and release prompts, linked to .opencode/commands, run in the
-                               chat as commands, not agents
+COMMANDS/                      plan and release prompts, registered by the workflow plugin, run in
+                               the chat as commands, not agents
 SETUP/
   setup-repo.py                link a checkout, create its local slots
   LOCAL.example/               every slot a checkout owns, including its models
-PLUGINS/workflow/              role-context hook, phase_new tool, bindings matrix
+PLUGINS/workflow/              role-context hook, commands, skills, edit guards, phase_new tool,
+                               bindings matrix
 PLUGINS/subagent-foreground/   the subagent tool that waits for the child's report
 PLUGINS/shadow-orchestrator/   submodule
 PLUGINS/opencode-keepalive/    submodule
-SKILLS/                        procedure skills (thin pointers at the shared text, never copies)
+SKILLS/                        procedure skills (front matter naming the shared text, never copies)
 ```
 
 `AGENT-INSTRUCTIONS/` is the payload, and `AGENTS.md` lands at the checkout root. `LOCAL/` is the
@@ -122,8 +126,7 @@ python SETUP/setup-repo.py /path/to/checkout
 python SETUP/setup-repo.py --check /path/to/checkout
 ```
 
-It symlinks `BUILDING/`, `PLANNING/`, `SUBAGENTS/`, `PUBLISHING/export.py`, `.opencode/commands`,
-`PLANS/README.md`, `AGENT-INSTRUCTIONS/README.md` and `AGENTS.md`. It creates `CURRENT-SCOPE.md`,
+It symlinks `BUILDING/`, `PLANNING/`, `SUBAGENTS/`, `PUBLISHING/export.py`, `PLANS/README.md`, `AGENT-INSTRUCTIONS/README.md` and `AGENTS.md`. It creates `CURRENT-SCOPE.md`,
 `ORCHESTRATOR-HANDOFF.md`, every slot in `SETUP/LOCAL.example/`, and `.opencode/opencode.json` when
 the checkout has none. It registers the checkout with the plugin, then stamps the agents. An item
 that is already present is reported and left alone, and only a wrong or missing link fails the run.
@@ -131,12 +134,15 @@ The plugin re-reads its bindings on every request, so a checkout registered whil
 needs no restart.
 
 Writing through a symlink edits the workflow repository itself, so a workflow fix lands in every
-checkout at once. In a governed checkout the plugin refuses `sed -i`, `perl -i` and `mv` when the
-command names shared workflow text (`AGENT-INSTRUCTIONS` or `AGENTS.md`). Those rename over the link,
-leaving a regular file behind and detaching the checkout while the text looks right.
+checkout at once. In a governed checkout the plugin refuses a shell command that names an
+instruction file and writes it: a redirection or `tee` into it, `sed -i`, `perl -i`, `mv`, `cp`,
+`rm` and similar, or a script that opens it for writing. A shell writer can rename over the link,
+leaving a regular file behind and detaching the checkout while the text looks right, and it skips
+the edit tool's check for the `agent-instructions` skill.
 
-The restriction covers shared workflow text only. The agents use in-place editors in product code.
-Use the edit tool for the shared text, and it writes through the link.
+The restriction covers the instruction tree outside `PLANS/`, `CURRENT-SCOPE.md` and
+`ORCHESTRATOR-HANDOFF.md`, plus `AGENTS.md`. The agents use in-place editors in product code. Use
+the edit tool for instruction files, and it writes through the link.
 
 Two things slip past a command-text rule: the tool's own `workdir` reaching shared text without
 naming it, and any writer you run yourself. `--check` is the backstop for both. It fails on a link

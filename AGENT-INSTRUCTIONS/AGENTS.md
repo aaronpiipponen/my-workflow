@@ -54,34 +54,37 @@ overview, the requirements, the repository map, the area documentation and any o
 workflow treats as product-owned. Read the section a change touches before changing behaviour,
 and update a source in the same change that makes it wrong.
 
-- `AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md` - binding engineering rules; the checkout's domain
-  invariants are in `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`.
-
 ## Authority
 
 Source, signatures and configuration are authoritative. Inspect the actual tree and source
 directly. Agent instructions may point into the checkout's documentation set, and that set never
 links to agent material.
 
-## Always read the area README before working
+## How the workflow reaches you
 
-`AGENT-INSTRUCTIONS/` is split by concern. Each subdirectory's `README.md` is its entry
-point and names what to read next.
+The workflow's rule files are the source of truth for what agents receive; they are not a reading
+list. The workflow plugin delivers them:
 
-- `AGENT-INSTRUCTIONS/README.md` - before editing any instruction: it says which rule belongs in the
-  shared file and which in the checkout's `LOCAL/`, and when to ask instead of guessing.
-- `AGENT-INSTRUCTIONS/BUILDING/README.md` - always before code changes.
-- `AGENT-INSTRUCTIONS/PLANNING/README.md` - for scoping, detailing, executing, or
-  remediating a plan/phase.
-- `AGENT-INSTRUCTIONS/PLANS/README.md` - when a plan or phase is named. A completed plan moves to
-  `PLANS/archive/`.
-- `AGENT-INSTRUCTIONS/SUBAGENTS/README.md` - canonical subagents and their allowed use.
-  Writing subagents are forbidden except the named agents and the two sanctioned workflows defined
-  there: the serial phase workflow and the release.
-- `AGENT-INSTRUCTIONS/CURRENT-SCOPE.md` - active per-branch scope fence. Code edits must
-  stay inside its claimed scope; documentation and planning edits remain allowed.
-- `AGENT-INSTRUCTIONS/ORCHESTRATOR-HANDOFF.md` - plan orchestrator's living handoff (the `/plan`
-  session only); child agents do not read or edit it.
+- **Injected every request.** Each session receives its role's rules in the system prompt. The main
+  chat agent receives the repository rules (`AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md`), the
+  checkout's domain invariants and the scope fence. Each subagent receives its own sections, and a
+  session started with `/plan` or `/release` also receives that orchestrator's procedure. Pasting a
+  command's text does not start its role; run the command.
+- **Skills, on demand.** Procedures that only some work needs are skills whose content is the shared
+  text itself: debugging, documentation style, documentation workflow, plan authoring, phase
+  detailing, phase remediation and `agent-instructions`. Load the matching skill when the work
+  starts.
+- **Held edits.** An edit under `AGENT-INSTRUCTIONS/` outside `PLANS/`, or to `AGENTS.md`, is held
+  until the session has loaded the `agent-instructions` skill, which says which rule belongs in the
+  shared text and which in the checkout's `LOCAL/`.
+
+Working state is read, not injected: the plan named for the work (`AGENT-INSTRUCTIONS/PLANS/`; a
+completed plan moves to `PLANS/archive/`), and the canonical subagents and their allowed use in
+`AGENT-INSTRUCTIONS/SUBAGENTS/README.md`. Writing subagents are forbidden except the named agents
+and the two sanctioned workflows defined there: the serial phase workflow and the release. Code
+edits stay inside the claimed scope of `AGENT-INSTRUCTIONS/CURRENT-SCOPE.md`; documentation and
+planning edits remain allowed. `AGENT-INSTRUCTIONS/ORCHESTRATOR-HANDOFF.md` is the plan
+orchestrator's living handoff; child agents do not read or edit it.
 
 If a task conflicts with these instructions, stop and ask.
 

@@ -23,10 +23,9 @@ problems only. Do not edit files.
   file.
 - The supplied diff (inline, file path, or commit range), the caller's `Symbol evidence`
   table, and the completed verification receipt.
-- `AGENT-INSTRUCTIONS/BUILDING/DOCUMENTATION-STYLE-GUIDE.md`, when the diff changes governed
-  prose: a Markdown page, README prose, a file header, a doc comment, a configuration, ignore-file
-  or script comment, or test text. The caller names it in the read list so the style checks rest on
-  the guide rather than memory.
+- The documentation style guide's rules, injected above, when the diff changes governed prose: a
+  Markdown page, README prose, a file header, a doc comment, a configuration, ignore-file or script
+  comment, or test text, so the style checks rest on the guide rather than memory.
 - The caller's named file list, read in full. Only the source/test/doc/migration lines a
   specific finding depends on beyond that.
 

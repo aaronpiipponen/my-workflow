@@ -1,8 +1,13 @@
 # AGENT-INSTRUCTIONS - how to edit this tree
 
 A rule has one home. Put it where it belongs the first time: a misplaced rule misleads every
-checkout. Named roles receive their sections by injection and every session loads `AGENTS.md`;
-everything else is read only when a role's instructions send it there.
+checkout. The files here are the source of truth for what agents receive, not a reading list: the
+workflow plugin injects each role's sections into every request, delivers on-demand procedures as
+skills whose content is the shared text, and owns the `/plan` and `/release` commands, which add
+their orchestrator's files to the session. Every session also loads `AGENTS.md`. This file reaches
+an agent as the `agent-instructions` skill, and the plugin holds edits to the instruction tree
+outside `PLANS/`, `CURRENT-SCOPE.md` and `ORCHESTRATOR-HANDOFF.md` until that skill is loaded. Write
+those files with the edit tool; the plugin refuses a shell command that writes them.
 
 This file is part of the workflow repository, linked into the checkout as
 `AGENT-INSTRUCTIONS/README.md`. The tooling paths it names (`SETUP/`, `PLUGINS/`, `SKILLS/`,
@@ -65,8 +70,14 @@ When a change could belong to more than one case, stop and ask the user instead 
 - If several roles need the identical block verbatim, make it a `SUBAGENTS/partials/` partial and
   leave a `<!-- partial: id -->` marker where it belongs in each source.
 - If a role must receive a file or a section it does not receive yet, change
-  `PLUGINS/workflow/bindings.default.json`. That file is the only map. A rule that must apply is
+  `PLUGINS/workflow/bindings.default.json`: `agents` for an agent (`build` is the main chat agent),
+  `roles` for a workflow command's session. That file is the only map. A rule that must apply is
   injected; one that relies on the model opening a file is not delivered.
+- A procedure that only some work needs is a skill: `SKILLS/<id>/SKILL.md` holds its front matter,
+  with `source` naming the shared file, and a short guidance paragraph. The plugin registers the
+  skill with that file's text as its content, so the skill never copies the rule.
+- A workflow command is `COMMANDS/<name>.md`; the plugin registers it and marks the session's role
+  `<name>`. Its body holds the orchestration rules only, never a list of files to read.
 - A tool earns its place only where it beats prose, and a script where a tool would only wrap one
   shell command.
 - Keep the shared text free of paths the setup does not guarantee. The guaranteed set is
@@ -105,7 +116,7 @@ failure this tree exists to prevent.
 
 ## Before you finish
 
-Edit prose by reading and rewriting it; a script or blind replacement mangles it. Verify nothing was
+Edit prose by reading and rewriting it with the edit tool; a script or blind replacement mangles it. Verify nothing was
 lost, then run both checks.
 
 ```sh

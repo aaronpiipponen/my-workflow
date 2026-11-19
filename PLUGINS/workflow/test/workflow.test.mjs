@@ -3,7 +3,15 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-import plugin, { isPathPrefix, renderPhase, selectSections, splitSections } from "../index.js"
+import plugin, {
+  entriesFor,
+  isInstructionPath,
+  isPathPrefix,
+  renderCommand,
+  renderPhase,
+  selectSections,
+  splitSections,
+} from "../index.js"
 
 let passed = 0
 let failed = 0
@@ -74,6 +82,23 @@ function workspace(shape = {}) {
   return root
 }
 
+// A workflow repository with one skill and one command, beside the checkout it governs.
+function workflowRepo() {
+  const root = mkdtempSync(path.join(tmpdir(), "wf-repo-"))
+  const files = {
+    "AGENT-INSTRUCTIONS/BUILDING/DEBUGGING.md": "debugging loop text\n",
+    "SKILLS/debugging/SKILL.md":
+      "---\nname: Debugging\ndescription: Diagnose bugs.\nsource: AGENT-INSTRUCTIONS/BUILDING/DEBUGGING.md\n---\n\nFollow the loop.\n",
+    "COMMANDS/release.md": "---\ndescription: Release\n---\n\nAct as release orchestrator. $ARGUMENTS\n",
+  }
+  for (const [relative, text] of Object.entries(files)) {
+    const file = path.join(root, relative)
+    mkdirSync(path.dirname(file), { recursive: true })
+    writeFileSync(file, text)
+  }
+  return root
+}
+
 function harness(root, { workspaces = [root], agents, bindings } = {}) {
   const defaults = bindings ?? {
     agents: {
@@ -92,11 +117,32 @@ function harness(root, { workspaces = [root], agents, bindings } = {}) {
   writeFileSync(defaultsFile, JSON.stringify(defaults))
   writeFileSync(localFile, JSON.stringify({ workspaces }))
 
-  const captured = { hook: null, tools: [], asserted: [] }
+  const captured = { hook: null, tools: [], asserted: [], skills: [], commands: [], prompts: [], messages: [] }
+  const store = new Map()
   const ctx = {
-    options: { bindings: localFile, defaults: defaultsFile },
+    options: { bindings: localFile, defaults: defaultsFile, workflow: workflowRepo() },
+    location: { directory: root },
+    storage: {
+      get: async (key) => store.get(key),
+      set: async (key, value) => store.set(key, value),
+    },
+    skill: {
+      transform: async (callback) => {
+        callback({ add: (skill) => captured.skills.push(skill) })
+        return { dispose: async () => {} }
+      },
+      reload: async () => {},
+    },
+    command: {
+      transform: async (callback) => {
+        callback({ add: (command) => captured.commands.push(command) })
+        return { dispose: async () => {} }
+      },
+    },
     session: {
       get: async () => ({ location: { directory: root } }),
+      context: async () => captured.messages,
+      prompt: async (input) => captured.prompts.push(input),
       hook: async (name, callback) => {
         if (name === "context") captured.hook = callback
         return { dispose: async () => {} }
@@ -118,7 +164,6 @@ function harness(root, { workspaces = [root], agents, bindings } = {}) {
         return { dispose: async () => {} }
       },
     },
-    command: {},
   }
   return { ctx, captured }
 }
@@ -226,7 +271,83 @@ check("leaves an ungoverned workspace alone", (await evaluate("s15", "sed -i 's/
 
 check("denies an in-place edit of AGENTS.md", (await evaluate("s16", "sed -i 's/a/b/' AGENTS.md")).effect === "deny")
 check("allows an in-place edit of product code", (await evaluate("s17", "sed -i 's/a/b/' src/foo.py")).effect === "allow")
+check("names the skill in a shell refusal before it is loaded", /agent-instructions/.test(denied.message ?? ""))
+const writes = [
+  "cat > AGENT-INSTRUCTIONS/LOCAL/publish.md <<'E'",
+  "echo x >> AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+  "printf x | tee -a AGENT-INSTRUCTIONS/README.md",
+  "python3 -c \"open('AGENT-INSTRUCTIONS/LOCAL/gates.md','w').write('x')\"",
+  "cp draft.md /w/AGENT-INSTRUCTIONS/PLANNING/phase-template.md",
+]
+for (const command of writes) {
+  check(`denies a shell write: ${command.slice(0, 40)}`, (await evaluate("s19", command)).effect === "deny")
+}
+const reads = [
+  "cat AGENT-INSTRUCTIONS/README.md > /tmp/copy.md",
+  "grep -n rule AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md 2>/dev/null",
+  "cat > AGENT-INSTRUCTIONS/PLANS/demo/docs-pass.md <<'E'",
+  "echo x >> AGENT-INSTRUCTIONS/ORCHESTRATOR-HANDOFF.md",
+  "python3 -c \"open('AGENT-INSTRUCTIONS/CURRENT-SCOPE.md','w')\"",
+]
+for (const command of reads) {
+  check(`allows: ${command.slice(0, 40)}`, (await evaluate("s20", command)).effect === "allow")
+}
 check("denies the long in-place flag", (await evaluate("s18", "sed --in-place 's/a/b/' AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md")).effect === "deny")
+// A workflow command marks its session, and the session then receives the role's files.
+const roled = harness(roots.main, {
+  bindings: {
+    agents: { build: [{ file: "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md" }] },
+    roles: {
+      release: [
+        { file: "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md" },
+        { file: "AGENT-INSTRUCTIONS/BUILDING/VERIFICATION-COMMITS-DEPLOY.md" },
+      ],
+    },
+  },
+})
+await plugin.setup(roled.ctx)
+const release = roled.captured.commands.find((command) => command.name === "release")
+check("registers the workflow commands", release?.description === "Release")
+const ask = async (sessionID) => {
+  const event = { sessionID, agent: "build", system: [], messages: [], tools: {}, options: {} }
+  await roled.captured.hook(event)
+  return event.system.map((part) => part.text).join("\n")
+}
+check("a plain session gets no role files", !(await ask("r1")).includes("verification rules"))
+await release.execute({ sessionID: "r1", prompt: { text: "for plan x" }, delivery: "steer" })
+check("the command sends its prompt with the arguments", roled.captured.prompts.at(-1)?.text === "Act as release orchestrator. for plan x")
+const roleText = await ask("r1")
+check("a marked session gets the role files", roleText.includes("verification rules"))
+check("a file the agent already gets is not repeated", roleText.split("current scope").length === 2)
+
+const skill = roled.captured.skills.find((entry) => entry.id === "debugging")
+check("a skill carries its guidance and the shared text", skill?.content.includes("Follow the loop.") && skill.content.includes("debugging loop text"))
+
+// Edits to the instruction tree are held until the session has loaded the agent-instructions skill.
+const edit = async (sessionID, file) => {
+  const event = { sessionID, action: "edit", resources: [file], effect: "allow" }
+  await roled.captured.evaluate(event)
+  return event
+}
+const held = await edit("e1", path.join(roots.main, "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md"))
+check("holds an instruction edit before the skill is loaded", held.effect === "deny" && /agent-instructions/.test(held.message))
+check("leaves plan files editable", (await edit("e1", path.join(roots.main, "AGENT-INSTRUCTIONS/PLANS/x/full-plan.md"))).effect === "allow")
+check("leaves the scope fence and the handoff editable", (await edit("e1", path.join(roots.main, "AGENT-INSTRUCTIONS/CURRENT-SCOPE.md"))).effect === "allow" && (await edit("e1", path.join(roots.main, "AGENT-INSTRUCTIONS/ORCHESTRATOR-HANDOFF.md"))).effect === "allow")
+check("leaves product files editable", (await edit("e1", path.join(roots.main, "src/app.py"))).effect === "allow")
+roled.captured.messages.push({
+  type: "assistant",
+  content: [{ type: "tool", name: "skill", state: { status: "completed", input: { id: "agent-instructions" } } }],
+})
+check("allows the edit once the model has loaded the skill", (await edit("e1", path.join(roots.main, "AGENTS.md"))).effect === "allow")
+check("allows the edit in a session whose user attached the skill", (await (async () => {
+  roled.captured.messages.splice(0, roled.captured.messages.length, { type: "skill", skill: "agent-instructions" })
+  return edit("e2", path.join(roots.main, "AGENTS.md"))
+})()).effect === "allow")
+
+check("orders entries star, agent, role", entriesFor({ agents: { "*": [{ file: "a" }], x: [{ file: "b" }] }, roles: { r: [{ file: "c" }] } }, "x", "r").map((e) => e.file).join() === "a,b,c")
+check("appends arguments when the body names no place", renderCommand("Body", "extra") === "Body\n\nextra")
+check("treats the workflow repository's instructions as instruction paths", isInstructionPath("/w/AGENT-INSTRUCTIONS/README.md", "/c", "/w"))
+
 const sections = splitSections(RULES)
 check("splits numbered sections", ["0", "1", "2", "3"].every((id) => sections.sections.has(id)))
 check("keeps the preamble out of the sections", sections.preamble.includes("# Rules"))

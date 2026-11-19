@@ -22,11 +22,11 @@ its question, inputs, binding rules or decision owner are missing.
 
 ## Read first
 
-1. The repository rules, the verification protocol, the plan-execution rules and the checkout's gate
-   commands are injected above; follow them. Load the `documentation-style` skill before writing or
-   editing any governed prose: a `docs/` page, README prose, a file header, a doc comment, a
-   configuration, ignore-file or script comment, or a test name, whether or not the phase touches
-   `docs/`. Load the `documentation-workflow` skill when the phase touches `docs/`.
+1. The repository rules, the verification protocol, the plan-execution rules, the checkout's gate
+   commands and the documentation style guide's content, writing, Markdown and code documentation
+   rules are injected above; follow them. The style rules govern every governed prose you write: a
+   `docs/` page, README prose, a file header, a doc comment, a configuration, ignore-file or script
+   comment, or a test name, whether or not the phase touches `docs/`.
 2. Read plan's bounded context required by
    `AGENT-INSTRUCTIONS/BUILDING/WORKING-FROM-PLANS.md`: relevant `full-plan.md` matter,
    named active phase, and required frozen contracts.

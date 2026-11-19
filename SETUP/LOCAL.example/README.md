@@ -2,8 +2,8 @@
 
 `SETUP/setup-repo.py` copies every file here into `AGENT-INSTRUCTIONS/LOCAL/` in a checkout, where it
 becomes the checkout's own, and never overwrites one afterwards. Every slot except this file,
-`workflow.toml` and `models.json` is read by agents: most by injection, and `publish.md` when the
-release's instructions send it there. `project.md` is injected to every agent and is silent while
+`workflow.toml` and `models.json` reaches agents by injection, `publish.md` into the `/release`
+session. `project.md` is injected to every agent and is silent while
 empty; `workflow.toml` and `models.json` are read by the tooling.
 
 The files are the root templates for the checkout's own files. A checkout fills its copies; this

@@ -1,27 +1,53 @@
 // Deliver the workflow's instruction text and phase scaffolding to the agents that need it.
 //
 // The context hook appends each agent's declared files to the system prompt of every request,
-// so the text cannot be forgotten and needs no read. A checkpoint's bindings list which
-// workspaces the hook applies to and, when it differs from the default matrix, which agents.
+// so the text cannot be forgotten and needs no read. A session started with one of the workflow
+// commands (`/plan`, `/release`) also receives that role's files. A checkpoint's bindings list
+// which workspaces the hook applies to and, when it differs from the default matrix, which agents
+// and roles.
 //
-// Two pure helpers stay exported for the test suite: section slicing and template rendering.
+// The plugin also owns the workflow commands, registers the workflow skills with the shared text
+// they name as their content, and holds edits to the instruction tree until the session has loaded
+// the `agent-instructions` skill.
+//
+// The pure helpers stay exported for the test suite.
 
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const PLUGIN_DIR = path.dirname(fileURLToPath(import.meta.url))
+const WORKFLOW_DIR = path.resolve(PLUGIN_DIR, "..", "..")
 const WORKSPACE_KEY = Symbol.for("opencode.workflow.workspaces")
+const ROLE_KEY = Symbol.for("opencode.workflow.roles")
+const README_KEY = Symbol.for("opencode.workflow.readme")
+const README_SKILL = "agent-instructions"
+const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?/
 const SECTION_HEADING = /^##\s+(.+)$/
 const NUMBERED_HEADING = /^(\d+[a-z]?)\.\s+(.*)$/
 const PHASE_FENCE = /```markdown\n([\s\S]*?)```/g
-// Writers that rename instead of writing in place, applied only when the command names shared
-// workflow text. Product code is deliberately left alone: the agents use `sed -i` there.
-// Known gap: a command that reaches shared text through the tool's own workdir without naming
-// it. `setup-repo.py --check` is the backstop for that.
-const DETACHING = /\b(?:sed|perl)\b[^|;&]*\s(?:-[a-zA-Z]*i|--in-place)\b|\bmv\b[^|;&]*/
-const SHARED_TEXT =
-  /AGENT-INSTRUCTIONS\/(?:BUILDING|PLANNING|SUBAGENTS|README\.md|PLANS\/README\.md|PUBLISHING\/export\.py)\b|(?:^|[\s"'=])AGENTS\.md\b/
+// The instruction tree is written with the edit tool only: it writes through the shared-text
+// symlinks, and its permission check holds an edit until the `agent-instructions` skill is loaded.
+// A shell command that names an instruction file and writes is refused. Product code is left
+// alone: the agents use `sed -i` there. Known gap: a command that reaches an instruction file
+// through the tool's own workdir without naming it. `setup-repo.py --check` is the backstop for
+// detached links.
+// The plan folders, the scope fence and the orchestrator handoff are working state, not rules.
+const WORKING_STATE = /^(?:PLANS|CURRENT-SCOPE\.md|ORCHESTRATOR-HANDOFF\.md)$/
+const INSTRUCTION_FILE =
+  /AGENT-INSTRUCTIONS\/(?!PLANS\/|CURRENT-SCOPE\.md|ORCHESTRATOR-HANDOFF\.md)[\w.-]|(?:^|[\s"'=/])AGENTS\.md\b/
+// A redirection or `tee` writes only its target; every other writer is judged by the instruction
+// file the command names.
+const REDIRECT_TARGET = /(?:^|[^<>0-9&])>>?\s*(['"]?)([^\s'";|&<>]+)\1|\btee\b((?:\s+-[a-z-]+)*\s+[^|;&]+)/g
+const WRITER =
+  /\b(?:sed|perl)\b[^|;&]*\s(?:-[a-zA-Z]*i|--in-place)\b|\b(?:mv|cp|rm|ln|install|truncate|touch|dd)\b|\b(?:python3?|node|ruby|perl)\b[\s\S]*(?:\bwrite|\bopen\s*\([^)]*['"][wax]|\bunlink\b|\brename\b|\bwrite_text\b)/
+
+export function writesInstructions(command) {
+  for (const match of command.matchAll(REDIRECT_TARGET)) {
+    if (INSTRUCTION_FILE.test(match[2] ?? match[3] ?? "")) return true
+  }
+  return WRITER.test(command) && INSTRUCTION_FILE.test(command)
+}
 
 // Split a rule document into its preamble and its level-two sections, keeping the headings. A
 // section is addressable by its number when it has one ("3a") and by its title otherwise
@@ -89,14 +115,95 @@ export function isPathPrefix(prefix, target) {
   return prefix.every((segment, index) => segment === target[index])
 }
 
-function entriesFor(bindings, agent) {
-  // The "*" key applies to every agent in the workspace, ahead of the agent's own entries.
-  const shared = bindings.agents?.["*"] ?? []
-  const own = bindings.agents?.[agent] ?? []
-  if (!Array.isArray(shared) || !Array.isArray(own)) {
-    throw new Error(`bindings: "${agent}" must be an array`)
+// The "*" key applies to every agent in the workspace, ahead of the agent's own entries, and a
+// session's role adds its entries last. An entry that an earlier list already names with the same
+// sections is delivered once.
+export function entriesFor(bindings, agent, role) {
+  const lists = [
+    ["*", bindings.agents?.["*"] ?? []],
+    [agent, bindings.agents?.[agent] ?? []],
+    [`role ${role}`, role ? (bindings.roles?.[role] ?? []) : []],
+  ]
+  const seen = new Set()
+  const entries = []
+  for (const [name, list] of lists) {
+    if (!Array.isArray(list)) throw new Error(`bindings: "${name}" must be an array`)
+    for (const entry of list) {
+      const key = JSON.stringify([entry.file, entry.sections ?? null])
+      if (seen.has(key)) continue
+      seen.add(key)
+      entries.push(entry)
+    }
   }
-  return [...shared, ...own]
+  return entries
+}
+
+// Split a workflow Markdown file into its flat `key: value` front matter and its body.
+export function parseFrontmatter(text, file) {
+  const match = FRONTMATTER.exec(text)
+  if (!match) throw new Error(`${file}: no front matter`)
+  const fields = {}
+  for (const line of match[1].split("\n")) {
+    if (!line.trim()) continue
+    const colon = line.indexOf(":")
+    if (colon < 1) throw new Error(`${file}: front matter line "${line}" is not "key: value"`)
+    fields[line.slice(0, colon).trim()] = line.slice(colon + 1).trim()
+  }
+  return { fields, body: text.slice(match[0].length).trim() }
+}
+
+// A command's prompt is its body with the user's arguments in place of `$ARGUMENTS`, or appended
+// when the body names no place for them.
+export function renderCommand(body, args) {
+  const text = (args ?? "").trim()
+  if (body.includes("$ARGUMENTS")) return body.replaceAll("$ARGUMENTS", text)
+  return text ? `${body}\n\n${text}` : body
+}
+
+// The instruction tree outside the plan folders, in the checkout or in the workflow repository
+// itself, plus the bootstrap `AGENTS.md`.
+export function isInstructionPath(file, workspace, workflow) {
+  const inside = (root) => {
+    const relative = path.relative(root, file).split(path.sep)
+    return (
+      relative[0] === "AGENT-INSTRUCTIONS" && relative.length > 1 && !WORKING_STATE.test(relative[1])
+    )
+  }
+  return path.relative(workspace, file) === "AGENTS.md" || inside(workspace) || inside(workflow)
+}
+
+// Every workflow skill: its front matter, its guidance and the shared file whose text it carries.
+export function readSkills(workflow) {
+  const root = path.join(workflow, "SKILLS")
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => {
+      const file = path.join(root, entry.name, "SKILL.md")
+      const { fields, body } = parseFrontmatter(readFileSync(file, "utf8"), file)
+      if (!fields.name || !fields.description || !fields.source) {
+        throw new Error(`${file}: front matter needs name, description and source`)
+      }
+      return { id: entry.name, file, ...fields, body, sourceFile: path.join(workflow, fields.source) }
+    })
+}
+
+// A skill reaches a session as a user attachment (a `skill` message) or as a completed `skill`
+// tool call the model made.
+export function loadsSkill(message, id) {
+  if (message.type === "skill") return message.skill === id
+  if (message.type !== "assistant") return false
+  return (message.content ?? []).some(
+    (part) =>
+      part.type === "tool" &&
+      part.name === "skill" &&
+      part.state?.status === "completed" &&
+      part.state.input?.id === id,
+  )
+}
+
+export function skillContent(skill) {
+  const source = readFileSync(skill.sourceFile, "utf8").trim()
+  return `${skill.body}\n\n<!-- skill-source: ${skill.source} -->\n${source}`
 }
 
 // Resolve one entry to the text to inject. Relative paths resolve against the workspace, so a
@@ -120,6 +227,7 @@ export default {
 
     const bindingsFile = ctx.options?.bindings ?? path.join(PLUGIN_DIR, "bindings.json")
     const defaultFile = ctx.options?.defaults ?? path.join(PLUGIN_DIR, "bindings.default.json")
+    const workflow = ctx.options?.workflow ?? WORKFLOW_DIR
     const logFile = ctx.options?.logFile
 
     const log = (line) => {
@@ -132,8 +240,8 @@ export default {
     }
 
     // The local file is machine state: which checkouts this plugin governs, plus optional
-    // per-agent overrides. `setup-repo.py` adds a workspace while the service is running, so the
-    // two files are re-read whenever either changes rather than only at plugin load.
+    // per-agent and per-role overrides. `setup-repo.py` adds a workspace while the service is
+    // running, so the two files are re-read whenever either changes rather than only at plugin load.
     const stampOf = (file) => {
       try {
         const stat = statSync(file)
@@ -152,12 +260,15 @@ export default {
         stamp,
         workspaces: (local.workspaces ?? []).map(pathSegments),
         agents: { ...(defaults.agents ?? {}), ...(local.agents ?? {}) },
+        roles: { ...(defaults.roles ?? {}), ...(local.roles ?? {}) },
       }
       return cached
     }
 
     const shared = (globalThis[WORKSPACE_KEY] ??= new Map())
     const directories = shared
+    const roles = (globalThis[ROLE_KEY] ??= new Map())
+    const readmeLoaded = (globalThis[README_KEY] ??= new Set())
 
     const workspaceOf = async (sessionID) => {
       if (directories.has(sessionID)) return directories.get(sessionID)
@@ -172,31 +283,119 @@ export default {
       return settings().workspaces.some((prefix) => isPathPrefix(prefix, target))
     }
 
+    // A workflow command marks its session with the command's role. The mark is durable, so a
+    // restarted service still delivers the role's files to that session.
+    const roleOf = async (sessionID) => {
+      if (roles.has(sessionID)) return roles.get(sessionID)
+      const stored = await ctx.storage.get(`role/${sessionID}`)
+      if (typeof stored === "string") roles.set(sessionID, stored)
+      return typeof stored === "string" ? stored : undefined
+    }
+
+    // Skills carry the shared text as their content, so a changed source reaches the next skill
+    // load. The context hook runs before every model call and reloads the skills when a skill or
+    // its source changed since the last registration. A malformed skill fails that request, not
+    // the plugin load, so injection keeps working for every other session.
+    const skillStamp = () =>
+      readSkills(workflow)
+        .map((skill) => `${stampOf(skill.file)}|${stampOf(skill.sourceFile)}`)
+        .join(",")
+    let registeredSkills = null
+
     await ctx.session.hook("context", async (event) => {
       const directory = await workspaceOf(event.sessionID)
       if (!directory || !governs(directory)) return
+      if (registeredSkills !== skillStamp()) await ctx.skill.reload()
+      const role = await roleOf(event.sessionID)
       const parts = []
-      for (const entry of entriesFor({ agents: settings().agents }, event.agent)) {
+      for (const entry of entriesFor(settings(), event.agent, role)) {
         const text = loadEntry(directory, entry)
         if (text && text.trim()) parts.push({ type: "text", text: `<!-- role-context: ${entry.file} -->\n${text}` })
       }
       if (parts.length) event.system.push(...parts)
     })
 
+    // Edits to the instruction tree wait until the session has loaded the skill that says where a
+    // rule belongs. The plan folders are working state and are not held.
+    const hasReadme = async (sessionID) => {
+      if (readmeLoaded.has(sessionID)) return true
+      const messages = await ctx.session.context({ sessionID })
+      const loaded = messages.some((message) => loadsSkill(message, README_SKILL))
+      if (loaded) readmeLoaded.add(sessionID)
+      return loaded
+    }
+
     // A rename-based writer replaces a symlink with a regular file, which detaches the checkout
     // from the workflow while the text still looks right. Only shared workflow text is refused;
     // the agents use in-place editors on product code and that is fine.
     await ctx.permission.hook("evaluate", async (event) => {
+      if (event.action === "edit") {
+        const directory = await workspaceOf(event.sessionID)
+        if (!directory || !governs(directory)) return
+        const held = event.resources.some((file) =>
+          isInstructionPath(path.resolve(directory, file), directory, workflow),
+        )
+        if (!held || (await hasReadme(event.sessionID))) return
+        event.effect = "deny"
+        event.message =
+          `Load the \`${README_SKILL}\` skill before editing the workflow instructions, then retry ` +
+          "this edit. It says which rule belongs in the shared text and which in the checkout's LOCAL/."
+        return
+      }
       if (event.action !== "shell") return
       for (const command of event.resources) {
-        if (!DETACHING.test(command) || !SHARED_TEXT.test(command)) continue
+        if (!writesInstructions(command)) continue
         const directory = await workspaceOf(event.sessionID)
         if (!directory || !governs(directory)) continue
         event.effect = "deny"
+        // Naming the missing skill here saves the edit tool's own refusal on the retry.
+        const skill = (await hasReadme(event.sessionID))
+          ? ""
+          : `Load the \`${README_SKILL}\` skill first; the edit tool holds instruction edits until it is loaded. `
         event.message =
-          "Shared workflow text is delivered as symlinks; an in-place editor (sed -i, perl -i) or " +
-          "a move replaces the link with a regular file and detaches this checkout. Use the edit " +
-          "tool, which writes through the link. Product code is not restricted."
+          "Write workflow instruction files with the edit tool, not the shell. " +
+          skill +
+          "The shared text is delivered as symlinks that a shell writer can replace with a regular " +
+          "file. Plan folders, the scope fence, the handoff and product code are not restricted."
+      }
+    })
+
+    const location = ctx.location?.directory ?? ""
+
+    await ctx.skill.transform((editor) => {
+      if (!location || !governs(location)) return
+      registeredSkills = skillStamp()
+      for (const skill of readSkills(workflow)) {
+        editor.add({
+          id: skill.id,
+          name: skill.name,
+          description: skill.description,
+          path: skill.file,
+          content: skillContent(skill),
+        })
+      }
+    })
+
+    // The orchestrator commands. Each one marks its session's role, then sends the command's
+    // prompt as the user's message.
+    await ctx.command.transform((editor) => {
+      if (!location || !governs(location)) return
+      const root = path.join(workflow, "COMMANDS")
+      for (const name of readdirSync(root).filter((file) => file.endsWith(".md"))) {
+        const file = path.join(root, name)
+        const role = name.slice(0, -".md".length)
+        const { fields } = parseFrontmatter(readFileSync(file, "utf8"), file)
+        editor.add({
+          name: role,
+          description: fields.description,
+          execute: async ({ sessionID, prompt, delivery }) => {
+            const { body } = parseFrontmatter(readFileSync(file, "utf8"), file)
+            await ctx.storage.set(`role/${sessionID}`, role)
+            roles.set(sessionID, role)
+            log(`role ${role} for ${sessionID}`)
+            await ctx.session.prompt({ ...prompt, sessionID, text: renderCommand(body, prompt.text), delivery })
+          },
+        })
       }
     })
 

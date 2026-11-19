@@ -5,8 +5,7 @@ Usage:
     python SETUP/setup-repo.py --check [checkout]
 
 The shared instruction set stays in one place: ``BUILDING/``, ``PLANNING/``, ``SUBAGENTS/``, ``PUBLISHING/export.py``, ``PLANS/README.md`` and
-``AGENTS.md`` become symlinks, and ``COMMANDS/`` becomes the
-checkout's ``.opencode/commands``,
+``AGENTS.md`` become symlinks,
 so editing one of them through the checkout edits the workflow repository itself. Everything that
 belongs to the checkout — the plan tree, the scope fence, the orchestrator handoff, the permission
 capabilities and the publishing selection — is created here as a real, editable file.
@@ -63,7 +62,6 @@ def plan(checkout: Path):
         (instructions / "PLANNING", SHARED / "PLANNING"),
         (instructions / "SUBAGENTS", SHARED / "SUBAGENTS"),
         (instructions / "PUBLISHING" / "export.py", SHARED / "PUBLISHING" / "export.py"),
-        (checkout / ".opencode" / "commands", WORKFLOW / "COMMANDS"),
         (instructions / "README.md", SHARED / "README.md"),
         (instructions / "PLANS" / "README.md", SHARED / "PLANS" / "README.md"),
     ]
@@ -81,7 +79,6 @@ def plan(checkout: Path):
                     "$schema": "https://opencode.ai/config.json",
                     # The plan loop is command session -> implementer -> reviewer, two levels deep.
                     "experimental": {"subagent_depth": 2},
-                    "skills": [str(WORKFLOW / "SKILLS")],
                 },
                 indent=2,
             )
@@ -160,7 +157,6 @@ LINK_PATHS = (
     "AGENT-INSTRUCTIONS/README.md",
     "AGENT-INSTRUCTIONS/PLANS/README.md",
     "AGENT-INSTRUCTIONS/PUBLISHING/export.py",
-    ".opencode/commands",
 )
 
 
@@ -183,7 +179,7 @@ def ensure_ignored(checkout: Path, pattern: str):
 def ignored(checkout: Path, pattern: str):
     """Whether the checkout's .gitignore already covers a path, either spelling of the root anchor.
 
-    A directory entry covers everything under it, so `.opencode/` covers `.opencode/commands`.
+    A directory entry covers everything under it, so `.opencode/` covers `.opencode/agents`.
     """
     ignore = checkout / ".gitignore"
     if not ignore.exists():
@@ -300,9 +296,11 @@ def main(argv):
         if not registered:
             print(f"NEEDS    {checkout} is not registered in {bindings.relative_to(WORKFLOW)}; the plugin injects nothing")
             failures += 1
+        # The plugin registers the skills with their shared text; a skills source here would load
+        # the same skills a second time as bare pointers.
         local_config = checkout / ".opencode" / "opencode.json"
-        if local_config.exists() and str(WORKFLOW / "SKILLS") not in local_config.read_text(encoding="utf-8"):
-            print(f"NEEDS    {local_config.relative_to(checkout)} has no skills source")
+        if local_config.exists() and str(WORKFLOW / "SKILLS") in local_config.read_text(encoding="utf-8"):
+            print(f"NEEDS    {local_config.relative_to(checkout)} still lists the workflow skills source; remove it")
             failures += 1
         return 1 if failures else 0
 
@@ -333,10 +331,10 @@ def main(argv):
         return 1
 
     local_config = checkout / ".opencode" / "opencode.json"
-    if local_config.exists() and str(WORKFLOW / "SKILLS") not in local_config.read_text(encoding="utf-8"):
+    if local_config.exists() and str(WORKFLOW / "SKILLS") in local_config.read_text(encoding="utf-8"):
         print()
-        print(f"note: add the skills source to {local_config.relative_to(checkout)}:")
-        print(f'  {{ "skills": ["{WORKFLOW / "SKILLS"}"] }}')
+        print(f"note: remove the workflow skills source from {local_config.relative_to(checkout)};")
+        print("  the workflow plugin registers those skills itself.")
     print()
     print("Re-run this script to update the checkout: existing links and LOCAL slots are left alone.")
     print("Agents are denied sed -i and perl -i here; run --check after any editor or script touched shared text.")
