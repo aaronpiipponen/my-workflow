@@ -10,9 +10,10 @@ them at once. Each checkout's own values live in its `AGENT-INSTRUCTIONS/LOCAL/`
 The payload is a reusable agent workflow for OpenCode: shared instructions, subagents, plans, skills
 and plugins. A session runs in a checkout that links this repository. `AGENTS.md` at the checkout
 root holds the bootstrap, and `PLUGINS/workflow/bindings.default.json` maps every text to the roles
-that receive it. The workflow plugin reads that map on each request and injects only the files and
-sections an agent needs. The shared text is a single copy, and each checkout's own values come from
-its `AGENT-INSTRUCTIONS/LOCAL/` slots.
+that receive it, with no second copy. A binding may select `sections` by number (`"3a"`) or by
+title (`"Code documentation"`), so a comment writer receives the code-documentation sections and
+not the page or capture rules. The workflow plugin reads that map on each request, injects only
+what the active role needs, and pairs it with the checkout's own `AGENT-INSTRUCTIONS/LOCAL/` slots.
 
 ### The three orchestrators
 
@@ -77,7 +78,7 @@ retest re-details the same phase in place instead of starting another.
 AGENT-INSTRUCTIONS/            everything a checkout receives
   AGENTS.md                    the bootstrap, linked to the checkout root
   BUILDING/ PLANNING/ PLANS/   shared text, linked into the checkout
-  SUBAGENTS/                   canonical roles, models, generator, partials
+  SUBAGENTS/                   canonical roles, generator, partials
   PUBLISHING/                  the exporter, the checkout's selection and its public assets
 COMMANDS/                      plan and release prompts, linked to .opencode/commands, run in the
                                chat as commands, not agents
@@ -147,14 +148,6 @@ check that fires there gets ignored, and then it protects nothing.
 the documentation specifics, per-role prose extensions, and any role it adds under `roles/`.
 `AGENT-INSTRUCTIONS/PUBLISHING/` is the checkout's too, except `export.py`, which is a link: the
 selection and the public assets live beside it.
-
-## Where each text lives
-
-One copy per text. The binding names the roles that receive it, and it holds no second copy.
-
-A binding may select `sections` by number (`"3a"`) or by title (`"Code documentation"`), so a role
-receives only the rules its work needs. That is why a comment writer receives the code-documentation
-sections and not the page or capture rules.
 
 ## Checks
 
