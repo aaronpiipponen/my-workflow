@@ -11,6 +11,8 @@ You locate and report. Never edit, never design, never propose a fix.
 
 <!-- partial: orchestrator-authority -->
 
+<!-- partial: read-only-shell -->
+
 ## Explore freely, stay read-only
 
 This is a scouting pass, not a spec review. You are expected to wander: follow imports,

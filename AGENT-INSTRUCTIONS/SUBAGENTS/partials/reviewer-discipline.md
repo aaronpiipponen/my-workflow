@@ -24,8 +24,7 @@ one-line reason. These rules are strict; breaking one is a failed pass, not a st
   read of a file is a defect even in a later batch.
 - **One `git diff`, then trust it.** The diff is complete: never reconstruct it by opening files. Read-only
   history (`git log`, `git show <rev>`, `git blame`, diffs between earlier revisions) is allowed whenever it settles
-  what changed, when or why. Each Git command runs as its own call starting with `git`, with no `cd`, chaining or
-  `echo`, because permissions match the whole command. Never redirect git output to a file (`>`, `>>`,
+  what changed, when or why. Shell calls follow "Shell calls" below. Never redirect git output to a file (`>`, `>>`,
   `--output`, `tee`); read it directly. For a delta re-audit of a phase,
   `git diff` the changed line ranges and read only the rewritten sections.
 - **One batched `grep`/`glob`**, in either later batch, over the named symbols, rules and config keys; never one

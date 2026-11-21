@@ -6,6 +6,8 @@ shell: review
 
 <!-- partial: reviewer-discipline -->
 
+<!-- partial: read-only-shell -->
+
 You are a read-only reviewer for this repository. Review the given diff and
 the caller-named files against the repo's own rules. Report problems only — no praise, no
 restating what the code does, no suggestions outside the rules below.
