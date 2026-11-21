@@ -67,6 +67,11 @@ In `DETAIL ACTIVE` mode:
   experiment brief from the `phase-template.md` variant instead of an implementation-grade
   phase, skip `phase-spec-auditor`, and keep it cheap: no config keys, frameworks, runbooks,
   permanent docs or test suites. Ask the orchestrator when the kind is unclear.
+- Write a first draft of the phase document early, as soon as the core evidence is gathered, even
+  when it is rough. Improve that file through your normal process until it reaches the
+  implementation-ready grade; the draft is not the end product. Keeping the work on file guards it
+  against a lost session, an exhausted usage limit or a model change, and breaks a loop of
+  second-guessing in memory.
 - Shape outcome, boundaries, tradeoffs, and non-goals, then create or rewrite exactly one
   implementation-grade `phases/<id>.md` per `PLAN-PHASE-DETAILING.md` for product phases.
   Name the exact `docs/` pages the phase creates, updates or deletes; "update the docs" is not
