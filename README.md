@@ -15,6 +15,10 @@ title (`"Code documentation"`), so a comment writer receives the code-documentat
 not the page or capture rules. The workflow plugin reads that map on each request, injects only
 what the active role needs, and pairs it with the checkout's own `AGENT-INSTRUCTIONS/LOCAL/` slots.
 
+The delivery path from this repository into a running session:
+
+![The workflow repository links its instruction tree into the checkout, stamps the agent role files and registers its plugins in the global OpenCode config. The workflow plugin reads the linked text and the checkout's local slots, and the OpenCode service runs the role sessions.](ASSETS/workflow-architecture.svg)
+
 ### The three orchestrators
 
 Each orchestrator runs as a long-lived session in the chat and owns decisions the subagents never
@@ -46,6 +50,15 @@ Every child receives only its own injected rules, and every caller owns the fina
 - Writers: `document-writer` writes documentation pages and diagrams and recaptures screenshots.
   `comment-writer` edits code comments and test names. `report-writer` writes experiment reports
   and charts.
+
+### The phase cycle
+
+One phase moves through the orchestrator, the phase detailer and the phase implementer. The
+orchestrator writes the plan, the detailer writes and audits the phase document, and the implementer
+builds and verifies one phase. Each role receives its injected rules, tools, skills and restrictions,
+and the read-only scouts and reviewers support that cycle.
+
+![The orchestrator opens or audits a phase with the phase detailer, the detailer hands the phase document to the implementer, and the implementer returns a receipt to the orchestrator. The detailer delegates to read-only scouts and reviewers, the implementer drives one reviewer pass, and the orchestrator briefs the writers on the release path.](ASSETS/workflow-phase-cycle.svg)
 
 ### Skills
 
@@ -97,6 +110,7 @@ PLUGINS/config-reload/         live reload of config, agent and mode files
 PLUGINS/shadow-orchestrator/   submodule
 PLUGINS/opencode-keepalive/    submodule
 SKILLS/                        procedure skills (front matter naming the shared text, never copies)
+ASSETS/                        workflow diagrams (delivery path, phase cycle)
 ```
 
 `AGENT-INSTRUCTIONS/` is the payload, and `AGENTS.md` lands at the checkout root. `LOCAL/` is the
