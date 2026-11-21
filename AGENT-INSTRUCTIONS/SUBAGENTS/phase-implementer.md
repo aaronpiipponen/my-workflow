@@ -119,8 +119,9 @@ each finding, verify it against the actual code and the phase before acting. Fix
 that are real, and explicitly reject the ones that are not (say why in your summary). Never
 apply a change only because the reviewer said so, and never dismiss one without checking.
 Add another reviewer only for a named, genuinely distinct high-risk seam. After relevant
-fixes, rerun focused regression/affected gates and use one fresh review pass; do not repeat
-no-findings reviews on unchanged code. New review tasks start fresh. Resume an interrupted or
+fixes, rerun the affected gates and run another fresh review pass over the whole diff. Repeat until a
+pass returns no real finding; that clean pass ends the loop. Do not repeat a clean pass on unchanged
+code. New review tasks start fresh. Resume an interrupted or
 unfinished reviewer in its exact session to continue its authorized task without additional user
 approval. Resuming a fully finished reviewer requires explicit user approval; otherwise use a fresh
 session for follow-up work. Preserve user stop instructions and unresolved decision gates.
@@ -162,6 +163,7 @@ REVISION: <base SHA>..<tested head SHA>
 TEST BUDGET: <functions added>/<functions deleted>/<optional net lines, observation only>
 PASS: <command> - <compact result>
 NOT RUN: <conditional gate> - <why not required>
+REVIEW: <pass number> - <reviewed head SHA> - <real findings fixed, or "no real finding">
 
 RELEVANT COMMENTS FOR ADVANCER
 <failed/skipped checks, blockers, proven contract drift, intentional deviations, or NONE>
@@ -171,8 +173,9 @@ NOT REQUIRED
 ```
 
 When user-only testing is required, replace `NOT REQUIRED` with `REQUIRED`, numbered
-steps, and exact expected results. Routine implementation narration, file lists, and
-reviewer history belong in normal summary, not advancer handoff comments. Passing commands
+steps, and exact expected results. Write one `REVIEW` line per review pass; the last line must read
+"no real finding", and a receipt without one is unfinished. Routine implementation narration and file
+lists belong in normal summary, not advancer handoff comments. Passing commands
 belong in verification receipt so advancer can reuse them.
 
 You may use `sudo` only for Docker commands when required by repository verification.
