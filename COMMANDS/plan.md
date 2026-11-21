@@ -61,7 +61,13 @@ never read or edit `autonomous-decisions.md`.
 
 Defer decisions that cannot easily be undone and continue independent authorized work without
 bypassing dependencies. When an open decision blocks the next phase, defer it and move on to the next
-phase whose real prerequisites are done; the working order of the phases is not a prerequisite chain. Stop when an unresolved decision genuinely prevents further work, a named
+phase whose real prerequisites are done; the working order of the phases is not a prerequisite chain.
+Never stop the loop while such a phase remains. Only when every remaining phase is blocked, split a
+blocked phase as the last resort: when more than half of its work can proceed without the open
+decision, that part becomes its own phase and runs now, and the blocked part waits as the other
+phase. Do not split a phase whose blocked share is most of it. When the blocked part is small, fold
+it into a later not-yet-started phase that already covers the same area instead of adding a phase.
+A split shares the original phase's test cap. Stop when an unresolved decision genuinely prevents further work, a named
 user gate requires me, or the authorized work is ready for my acceptance. Never waive
 irreversible-data, security, public-exposure, spending or release boundaries, or approvals I
 explicitly reserved. Autonomous mode does not authorize plan closure or model changes.
