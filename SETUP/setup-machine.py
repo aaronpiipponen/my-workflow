@@ -10,7 +10,7 @@ It does these things and nothing else:
   ``config.example.json`` to ``config.json`` when that file is absent;
 - creates the workflow plugin's ``bindings.json`` from its example when absent, because the list of
   governed checkouts is machine state;
-- adds the four local plugin entries to the global ``~/.config/opencode/opencode.json`` if they are
+- adds the five local plugin entries to the global ``~/.config/opencode/opencode.json`` if they are
   missing, and removes a skills entry for this repository's ``SKILLS/``, which the workflow plugin
   registers itself, after backing the file up.
 
@@ -50,6 +50,9 @@ PLUGINS = {
     },
     "subagent-foreground": {
         "path": ROOT / "PLUGINS" / "subagent-foreground",
+    },
+    "config-reload": {
+        "path": ROOT / "PLUGINS" / "config-reload",
     },
 }
 

@@ -64,8 +64,9 @@ registers the skills with their shared text and the `phase_new` tool, holds edit
 instruction tree until the `agent-instructions` skill is loaded, and refuses shell writes to it.
 After editing instruction files, run `/workflow-reload` in the working session to apply them. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
 child reports so the caller can use the answer in the same turn. `PLUGINS/opencode-keepalive/`
-warms the prompt cache of the orchestration models the checkout selects. The shadow orchestrator
-plugin belongs to the orchestrators above.
+warms the prompt cache of the orchestration models the checkout selects. `PLUGINS/config-reload/`
+makes config, agent and mode file changes take effect in a running service without a restart. The
+shadow orchestrator plugin belongs to the orchestrators above.
 
 ### Plans
 
@@ -92,6 +93,7 @@ SETUP/
 PLUGINS/workflow/              role-context hook, commands, skills, edit guards, phase_new tool,
                                bindings matrix
 PLUGINS/subagent-foreground/   the subagent tool that waits for the child's report
+PLUGINS/config-reload/         live reload of config, agent and mode files
 PLUGINS/shadow-orchestrator/   submodule
 PLUGINS/opencode-keepalive/    submodule
 SKILLS/                        procedure skills (front matter naming the shared text, never copies)
@@ -110,7 +112,7 @@ python SETUP/setup-machine.py
 
 That checks the two imported plugins out, copies each plugin's example configuration to its real
 `config.json` where one is missing, creates `PLUGINS/workflow/bindings.json` (the machine's list of
-governed checkouts), and adds the four local plugin entries to
+governed checkouts), and adds the five local plugin entries to
 `~/.config/opencode/opencode.json`, backing that file up first. It leaves a configured entry and a
 local configuration untouched, so it is safe to run again after a `git pull`. It aborts rather
 than edit a config file that is not plain JSON.
