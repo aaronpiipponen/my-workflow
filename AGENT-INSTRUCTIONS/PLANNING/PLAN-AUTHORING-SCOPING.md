@@ -208,6 +208,10 @@ Rules:
   `experiment` marks disposable experiment work; every other level is product work.
 - The `Move-on gate` column is concrete "when to move to next phase" answer: it names
   automated/agent acceptance plus user-only verification when actually required.
+- The table's row order is the working order. `Depends on` names only the real prerequisite phases
+  whose landed contracts the phase consumes, or `-`; it never restates the working order by naming
+  the previous row. When a decision blocks the next phase in the working order, the next phase whose
+  prerequisites are done runs instead.
 - When a phase completes, flip its row to `done` and repoint its file to `done/`.
 - Every product phase identifies the public behaviors/data integrity its tests protect
   (REPO-RULES §3a). A plan sets no numeric code/test/document line limits or suite/package
@@ -382,7 +386,7 @@ Use this lighter template for each phase:
 ## Phase <id> - <short title>
 
 **Status:** planned.
-**Depends on:** <previous phase(s) or none>.
+**Depends on:** <real prerequisite phase(s) whose contracts this phase consumes, or none>.
 **Scope:** <one paragraph: what this phase makes possible>.
 **Expected gate level:** <experiment | minimal | standard | full | security>.
 

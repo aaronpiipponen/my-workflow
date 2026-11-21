@@ -60,7 +60,8 @@ permission or its decision record into child prompts or the phase documents they
 never read or edit `autonomous-decisions.md`.
 
 Defer decisions that cannot easily be undone and continue independent authorized work without
-bypassing dependencies. Stop when an unresolved decision genuinely prevents further work, a named
+bypassing dependencies. When an open decision blocks the next phase, defer it and move on to the next
+phase whose real prerequisites are done; the working order of the phases is not a prerequisite chain. Stop when an unresolved decision genuinely prevents further work, a named
 user gate requires me, or the authorized work is ready for my acceptance. Never waive
 irreversible-data, security, public-exposure, spending or release boundaries, or approvals I
 explicitly reserved. Autonomous mode does not authorize plan closure or model changes.
