@@ -105,7 +105,7 @@ checkout's own and is created from `SETUP/LOCAL.example/`.
 ## On another machine
 
 ```sh
-git clone --recurse-submodules <url> my-workflow
+git clone --recurse-submodules https://github.com/aaronpiipponen/my-workflow.git my-workflow
 cd my-workflow
 python SETUP/setup-machine.py
 ```
