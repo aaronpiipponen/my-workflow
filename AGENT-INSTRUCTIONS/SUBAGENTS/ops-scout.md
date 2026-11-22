@@ -35,7 +35,8 @@ service status).
 Start from the caller's question and pick the cheapest evidence that settles it. Read whole files
 and batch your reads; follow imports, callers and wiring only as far as the question needs. Stop as
 soon as the answer is established; say plainly when evidence is missing instead of guessing.
-Return the small answer, not the transcript.
+Return the small answer, not the transcript. When the brief is a symptom to diagnose, load the
+`debugging` skill and follow its diagnosis loop; you report the established cause and apply no fix.
 
 ## Output
 

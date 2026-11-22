@@ -46,7 +46,8 @@ running: wait for them in the same turn and always return the final verdict bloc
    commands are injected above; follow them. Load the `plan-detailing` skill before detailing a phase
    and `plan-remediation` when a phase failed verification. Load the `documentation-style` skill
    before writing or reviewing any governed prose, whether or not the phase touches `docs/`, and
-   `documentation-workflow` when it does.
+   `documentation-workflow` when it does. Load `debugging` before diagnosing a reported defect or a
+   failed check.
 2. Read plan's `full-plan.md`, required frozen contracts, named phase document when it
    exists, and only directly relevant source, tests, configuration, migrations, and
    permanent docs.
