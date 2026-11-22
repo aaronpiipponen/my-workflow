@@ -206,6 +206,10 @@ check("an agent absent from the matrix gets no context", unknown.system.length =
 const outsider = await run("s4", "phase-implementer", roots.other)
 check("a workspace outside the bindings gets no context", outsider.system.length === 0)
 
+const beforeMove = await run("s-move", "phase-implementer", roots.main)
+const afterMove = await run("s-move", "phase-implementer", roots.other)
+check("a moved session follows its new directory", beforeMove.system.length > 0 && afterMove.system.length === 0)
+
 // Check that a workspace registered while the service runs takes effect on the next request.
 const late = harness(roots.main, { workspaces: [] })
 await plugin.setup(late.ctx)

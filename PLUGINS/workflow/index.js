@@ -12,7 +12,6 @@ import { fileURLToPath } from "node:url"
 
 const PLUGIN_DIR = path.dirname(fileURLToPath(import.meta.url))
 const WORKFLOW_DIR = path.resolve(PLUGIN_DIR, "..", "..")
-const WORKSPACE_KEY = Symbol.for("opencode.workflow.workspaces")
 const ROLE_KEY = Symbol.for("opencode.workflow.roles")
 const README_KEY = Symbol.for("opencode.workflow.readme")
 const INJECTION_KEY = Symbol.for("opencode.workflow.injections")
@@ -259,18 +258,15 @@ export default {
       return cached
     }
 
-    const shared = (globalThis[WORKSPACE_KEY] ??= new Map())
-    const directories = shared
     const roles = (globalThis[ROLE_KEY] ??= new Map())
     const readmeLoaded = (globalThis[README_KEY] ??= new Set())
     const injections = (globalThis[INJECTION_KEY] ??= new Map())
 
+    // Read on every call: a session can move to another directory, and a cached directory would
+    // keep applying the old workspace's rules and edit guard.
     const workspaceOf = async (sessionID) => {
-      if (directories.has(sessionID)) return directories.get(sessionID)
       const info = await ctx.session.get({ sessionID })
-      const directory = info?.location?.directory ?? ""
-      directories.set(sessionID, directory)
-      return directory
+      return info?.location?.directory ?? ""
     }
 
     const governs = (directory) => {
@@ -292,7 +288,7 @@ export default {
       const directory = await workspaceOf(event.sessionID)
       if (!directory || !governs(directory)) return
       const role = await roleOf(event.sessionID)
-      const key = `${event.sessionID}|${event.agent}|${role ?? ""}`
+      const key = `${event.sessionID}|${directory}|${event.agent}|${role ?? ""}`
       let parts = injections.get(key)
       if (!parts) {
         parts = []
