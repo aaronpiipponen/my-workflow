@@ -21,6 +21,10 @@ plugin delivers; this README maps the area to its file and says how the file rea
   the `/plan` session. Authoring and detailing phases is a separate activity in `../PLANNING/`.
 - **`DEBUGGING.md`** — scientific debugging loop for bugs, flakes and unexplained behavior:
   predict, observe, resolve, narrow, fix, verify without guessing. The `debugging` skill.
+- **`UI-BUILDING.md`** — building user interface: reuse a reference element before inventing one,
+  motion parity, layout stability, feedback parity, context sense and an objective browser proof.
+  The checkout's reference elements and known interface defects are in
+  `AGENT-INSTRUCTIONS/LOCAL/ui-reference.md`. The `ui-building` skill.
 - **`DOCUMENTATION-STYLE-GUIDE.md`** — the text rules, binding for any governed prose a change
   writes or edits: a documentation page, README prose, a file header, a doc comment, a
   configuration or script comment, or a test name, whether or not the change touches the

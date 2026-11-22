@@ -27,7 +27,8 @@ its question, inputs, binding rules or decision owner are missing.
    rules are injected above; follow them. The style rules govern every governed prose you write: a
    `docs/` page, README prose, a file header, a doc comment, a configuration, ignore-file or script
    comment, or a test name, whether or not the phase touches `docs/`. Load the
-   `documentation-workflow` skill when the change touches `docs/`, and the `debugging` skill when a
+   `documentation-workflow` skill when the change touches `docs/`, the `ui-building` skill when it
+   changes anything a user sees or touches, and the `debugging` skill when a
    test or check fails for a reason you have not yet established, or a defect needs diagnosis.
 2. Read plan's bounded context required by
    `AGENT-INSTRUCTIONS/BUILDING/WORKING-FROM-PLANS.md`: relevant `full-plan.md` matter,

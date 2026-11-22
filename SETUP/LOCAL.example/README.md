@@ -2,8 +2,8 @@
 
 `SETUP/setup-repo.py` copies every file here into `AGENT-INSTRUCTIONS/LOCAL/` in a checkout, where it
 becomes the checkout's own, and never overwrites one afterwards. Every slot except this file,
-`workflow.toml` and `models.json` reaches agents by injection, `publish.md` into the `/release`
-session. `project.md` is injected to every agent and is silent while
+`workflow.toml`, `models.json` and `ui-reference.md` reaches agents by injection, `publish.md` into the
+`/release` session; agents read `ui-reference.md` through the `ui-building` skill. `project.md` is injected to every agent and is silent while
 empty; `workflow.toml` and `models.json` are read by the tooling.
 
 The files are the root templates for the checkout's own files. A checkout fills its copies; this
@@ -33,4 +33,5 @@ file, not a template.
 | `comment-writer.md` | where the comment writer works |
 | `report-writer.md` | where the report writer works, and its chart rules |
 | `publish.md` | the public checkout and the publication boundary |
+| `ui-reference.md` | the interface reference elements, styling and motion values, widths and known defects, read through the `ui-building` skill |
 | `ops-scout.md` | the checkout's remote hosts, worker roots and the hardware a scout must never touch |

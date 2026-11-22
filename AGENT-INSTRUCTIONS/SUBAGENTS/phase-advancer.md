@@ -47,7 +47,9 @@ running: wait for them in the same turn and always return the final verdict bloc
    and `plan-remediation` when a phase failed verification. Load the `documentation-style` skill
    before writing or reviewing any governed prose, whether or not the phase touches `docs/`, and
    `documentation-workflow` when it does. Load `debugging` before diagnosing a reported defect or a
-   failed check.
+   failed check, and `ui-building` before detailing or judging a phase that changes anything a user
+   sees or touches; the detailed phase names each new element's reference element and the objective
+   browser proof.
 2. Read plan's `full-plan.md`, required frozen contracts, named phase document when it
    exists, and only directly relevant source, tests, configuration, migrations, and
    permanent docs.

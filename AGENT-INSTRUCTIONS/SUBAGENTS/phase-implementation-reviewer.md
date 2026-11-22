@@ -28,6 +28,9 @@ problems only. Do not edit files.
 - The documentation style guide's rules, injected above, when the diff changes governed prose: a
   Markdown page, README prose, a file header, a doc comment, a configuration, ignore-file or script
   comment, or test text, so the style checks rest on the guide rather than memory.
+- The `ui-building` skill, loaded when the diff changes anything a user sees or touches: check reuse
+  of a reference element, motion and feedback parity, layout stability and the objective browser
+  proof in the receipt.
 - The caller's named file list, read in full. Only the source/test/doc/migration lines a
   specific finding depends on beyond that.
 
