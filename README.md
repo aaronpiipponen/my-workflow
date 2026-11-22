@@ -62,8 +62,8 @@ and the read-only scouts and reviewers support that cycle.
 
 ### Skills
 
-`SKILLS/` holds seven procedure skills: `agent-instructions`, `debugging`, `documentation-style`,
-`documentation-workflow`, `plan-authoring`, `plan-detailing` and `plan-remediation`. Each
+`SKILLS/` holds eight procedure skills: `agent-instructions`, `debugging`, `documentation-style`,
+`documentation-workflow`, `plan-authoring`, `plan-detailing`, `plan-remediation` and `ui-building`. Each
 `SKILL.md` holds the trigger, a short guidance paragraph and a `source` naming the governing shared
 file. The workflow plugin registers the skill with that file's text as its content, so loading the
 skill delivers the procedure itself and the procedure keeps one authoritative home.
