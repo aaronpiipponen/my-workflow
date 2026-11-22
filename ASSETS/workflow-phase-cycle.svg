@@ -35,7 +35,7 @@
   <text x="228" y="314" text-anchor="middle" font-size="16" fill="#ececf2">Phase detailer</text>
   <text x="228" y="336" text-anchor="middle" font-size="14" fill="#a3a4b8">details and audits a phase</text>
   <text x="228" y="364" text-anchor="middle" font-size="14" fill="#a3a4b8">tools: phase_new, foreground</text>
-  <text x="228" y="388" text-anchor="middle" font-size="14" fill="#a3a4b8">skills: plan detailing</text>
+  <text x="228" y="388" text-anchor="middle" font-size="14" fill="#a3a4b8">skills: plan detailing, UI building</text>
   <text x="228" y="412" text-anchor="middle" font-size="14" fill="#a3a4b8">restriction: plan files only</text>
 
   <rect x="552" y="288" width="360" height="144" rx="8"
@@ -43,7 +43,7 @@
   <text x="732" y="314" text-anchor="middle" font-size="16" fill="#ececf2">Phase implementer</text>
   <text x="732" y="336" text-anchor="middle" font-size="14" fill="#a3a4b8">builds and verifies</text>
   <text x="732" y="364" text-anchor="middle" font-size="14" fill="#a3a4b8">tools: edit, gates, foreground review</text>
-  <text x="732" y="388" text-anchor="middle" font-size="14" fill="#a3a4b8">skills: debugging, documentation style</text>
+  <text x="732" y="388" text-anchor="middle" font-size="14" fill="#a3a4b8">skills: debugging, UI building, docs</text>
   <text x="732" y="412" text-anchor="middle" font-size="14" fill="#a3a4b8">restriction: one phase only</text>
 
   <rect x="48" y="496" width="360" height="64" rx="8"
