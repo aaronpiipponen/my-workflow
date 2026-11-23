@@ -133,10 +133,10 @@ than edit a config file that is not plain JSON.
 
 `--check` reports what is missing without writing anything.
 
-When a plugin change breaks OpenCode, `python SETUP/setup-machine.py --plugins off` turns off every
-global plugin that loads from this repository, by adding a `plugin.use` deny policy for each, and
-`--plugins on` removes exactly those policies again. The plugin entries stay as they are, and the
-file is backed up first.
+When a plugin change breaks OpenCode, `python SETUP/plugins.py off` turns off every global plugin
+that loads from this repository, by adding a `plugin.use` deny policy for each, and
+`python SETUP/plugins.py on` removes exactly those policies again. The plugin entries stay as they
+are, and the file is backed up first. `setup-machine.py --plugins off|on` runs the same switch.
 
 Then restart the service once (`opencode service restart`) and set up each checkout that should use
 the workflow.
