@@ -423,5 +423,18 @@ try {
 }
 check("phase_new refuses to overwrite an existing phase", duplicateThrew)
 
+// A reloaded plugin finds the previous build's state and must read it safely.
+{
+  const { processState } = await import("../index.js")
+  const state = processState()
+  check("the process state carries a version", typeof state.version === "number")
+  state.injections.set("kept|/w|x|", [{ type: "text", text: "snapshot" }])
+  const reloaded = processState()
+  check("a reload keeps the injection snapshots", reloaded.injections.get("kept|/w|x|")?.[0]?.text === "snapshot")
+  globalThis[Symbol.for("opencode.workflow.state")] = { version: 2, roles: "not a map", readme: null, injections: "not a map" }
+  const repaired = processState()
+  check("a wrong-shaped state is replaced, not misread", repaired.roles instanceof Map && repaired.readme instanceof Set && repaired.injections instanceof Map)
+}
+
 console.log(`\n${passed} passed, ${failed} failed`)
 process.exit(failed ? 1 : 0)

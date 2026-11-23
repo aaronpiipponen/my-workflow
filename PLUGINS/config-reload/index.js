@@ -34,6 +34,8 @@ const CONFIG_NAMES = new Set(["opencode.json", "opencode.jsonc", "config.json"])
 const AGENT_DIRS = ["agent", "agents"]
 const MODE_DIRS = ["mode", "modes"]
 const STATE = Symbol.for("opencode.config-reload.v2.state")
+// Bump when a change to the state shape makes a previous load's state unsafe to read.
+const STATE_VERSION = 2
 const DEBOUNCE_MS = 500
 
 function configDir() {
@@ -123,7 +125,33 @@ function createState() {
   for (const sub of [...AGENT_DIRS, ...MODE_DIRS]) {
     watchDir(path.join(dir, sub), isMarkdownEvent, "agents")
   }
+  state.version = STATE_VERSION
   return state
+}
+
+// The service reloads this plugin whenever its files change, so a previous build's state is still
+// there. Its live contexts and watchers must not be reused: the contexts belong to disposed
+// locations and an old watcher keeps calling the old build's callbacks. Only a state of the shape
+// this code expects is kept as it is; anything else is closed and rebuilt.
+function processState() {
+  const previous = globalThis[STATE]
+  if (
+    previous?.version === STATE_VERSION &&
+    previous.contexts instanceof Set &&
+    Array.isArray(previous.watchers) &&
+    previous.pending &&
+    typeof previous.pending.config === "boolean"
+  ) {
+    return previous
+  }
+  for (const watcher of previous?.watchers ?? []) {
+    try {
+      watcher.close()
+    } catch {
+      // A watcher an older build left may already be closed; the rebuild continues either way.
+    }
+  }
+  return (globalThis[STATE] = createState())
 }
 
 // The TUI loads the same plugin entry and calls `setup` with its own context, which has
@@ -142,7 +170,7 @@ export default {
   id: "config-reload",
   setup: async (ctx) => {
     if (!isServerHost(ctx)) return
-    const state = (globalThis[STATE] ??= createState())
+    const state = processState()
     state.contexts.add(ctx)
     return () => {
       state.contexts.delete(ctx)

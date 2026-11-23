@@ -12,9 +12,9 @@ import { fileURLToPath } from "node:url"
 
 const PLUGIN_DIR = path.dirname(fileURLToPath(import.meta.url))
 const WORKFLOW_DIR = path.resolve(PLUGIN_DIR, "..", "..")
-const ROLE_KEY = Symbol.for("opencode.workflow.roles")
-const README_KEY = Symbol.for("opencode.workflow.readme")
-const INJECTION_KEY = Symbol.for("opencode.workflow.injections")
+const STATE_KEY = Symbol.for("opencode.workflow.state")
+// Bump when a change to the shape below makes a previous load's state unsafe to read.
+const STATE_VERSION = 2
 const README_SKILL = "agent-instructions"
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n?/
 const SECTION_HEADING = /^##\s+(.+)$/
@@ -213,6 +213,27 @@ export function loadEntry(workspace, entry) {
   return selectSections(text, entry.sections, file)
 }
 
+/**
+ * Process-wide state that a reloaded build must find and read safely.
+ *
+ * OpenCode reloads this plugin whenever its files change, and the state below outlives that
+ * reload. A previous load may have stored a shape this code cannot read, so every field is
+ * validated: a field with the wrong shape is replaced, and the injection snapshots are adopted
+ * whenever they validate, because dropping them would rebuild every running session's prompt.
+ */
+export function processState() {
+  const previous = globalThis[STATE_KEY]
+  const usable = previous?.version === STATE_VERSION
+  const next = {
+    version: STATE_VERSION,
+    roles: usable && previous.roles instanceof Map ? previous.roles : new Map(),
+    readme: usable && previous.readme instanceof Set ? previous.readme : new Set(),
+    injections: previous?.injections instanceof Map ? previous.injections : new Map(),
+  }
+  globalThis[STATE_KEY] = next
+  return next
+}
+
 export default {
   id: "workflow",
 
@@ -258,9 +279,10 @@ export default {
       return cached
     }
 
-    const roles = (globalThis[ROLE_KEY] ??= new Map())
-    const readmeLoaded = (globalThis[README_KEY] ??= new Set())
-    const injections = (globalThis[INJECTION_KEY] ??= new Map())
+    const state = processState()
+    const roles = state.roles
+    const readmeLoaded = state.readme
+    const injections = state.injections
 
     // Read on every call: a session can move to another directory, and a cached directory would
     // keep applying the old workspace's rules and edit guard.
