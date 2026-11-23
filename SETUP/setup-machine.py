@@ -3,6 +3,13 @@
 Usage:
     python SETUP/setup-machine.py
     python SETUP/setup-machine.py --check
+    python SETUP/setup-machine.py --plugins off
+    python SETUP/setup-machine.py --plugins on
+
+``--plugins off`` turns off every global plugin entry that loads from this repository, without
+editing the entries: it adds a ``plugin.use`` deny policy for each, which OpenCode applies on the
+next configuration reload. ``--plugins on`` removes exactly those policies. Use it when a plugin
+change breaks OpenCode, then fix the plugin and turn the plugins back on.
 
 It does these things and nothing else:
 
@@ -71,7 +78,56 @@ def package_of(item):
     return str(Path(os.path.expanduser(value)).resolve())
 
 
+def write_config(config, path, existed):
+    """Back the file up when it existed, then write the configuration."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if existed:
+        backup = path.with_name(f"{path.name}.bak-{int(time.time())}")
+        shutil.copyfile(path, backup)
+        print(f"backup   {backup.name}")
+    path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote    {path}")
+
+
+def switch_plugins(state, path=GLOBAL_CONFIG):
+    """Deny or allow again every plugin entry that loads from this repository."""
+    try:
+        config = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        print(f"ABORT    {path} is not plain JSON ({error}); edit it by hand", file=sys.stderr)
+        return 1
+    root = str(ROOT.resolve())
+    # Only an entry written as a path can load from this repository; a bare name is an npm package.
+    named = [item.get("package") if isinstance(item, dict) else item for item in config.get("plugins", [])]
+    paths = [str(Path(os.path.expanduser(value)).resolve()) for value in named if isinstance(value, str) and value.startswith(("/", "~"))]
+    ours = sorted(package for package in paths if package == root or package.startswith(root + os.sep))
+    policies = config.get("policies", [])
+    # A deny is ours when it names one of our entries; any other policy is left exactly as it is.
+    kept = [
+        policy
+        for policy in policies
+        if not (policy.get("action") == "plugin.use" and policy.get("effect") == "deny" and policy.get("resource") in ours)
+    ]
+    wanted = kept + ([{"action": "plugin.use", "resource": package, "effect": "deny"} for package in ours] if state == "off" else [])
+    if wanted == policies:
+        print(f"ok       the {len(ours)} plugins from this repository are already {state}")
+        return 0
+    if wanted:
+        config["policies"] = wanted
+    else:
+        config.pop("policies", None)
+    write_config(config, path, existed=True)
+    for package in ours:
+        print(f"{state:<8} {package}")
+    return 0
+
+
 def main(argv):
+    if argv[:1] == ["--plugins"]:
+        if len(argv) != 2 or argv[1] not in ("on", "off"):
+            print("usage: setup-machine.py --plugins on|off", file=sys.stderr)
+            return 2
+        return switch_plugins(argv[1])
     checking = "--check" in argv
     problems = []
 
@@ -169,13 +225,7 @@ def main(argv):
         return 1
 
     if missing or stale_skills:
-        GLOBAL_CONFIG.parent.mkdir(parents=True, exist_ok=True)
-        if existed:
-            backup = GLOBAL_CONFIG.with_name(f"{GLOBAL_CONFIG.name}.bak-{int(time.time())}")
-            shutil.copyfile(GLOBAL_CONFIG, backup)
-            print(f"backup   {backup.name}")
-        GLOBAL_CONFIG.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
-        print(f"wrote    {GLOBAL_CONFIG}")
+        write_config(config, GLOBAL_CONFIG, existed)
 
     print()
     print("Restart the OpenCode service to load a changed plugin list:")
