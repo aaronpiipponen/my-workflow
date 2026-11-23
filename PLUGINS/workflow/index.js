@@ -382,10 +382,12 @@ export default {
       editor.add({
         name: "workflow-reload",
         description: "Apply workflow instruction edits from disk now, instead of on the next session.",
-        execute: async () => {
-          injections.clear()
+        // Only the invoking session's snapshot is dropped: clearing every session's would change the
+        // system prompt of every running session at once and void all of their read caches.
+        execute: async ({ sessionID }) => {
+          for (const key of injections.keys()) if (key.startsWith(`${sessionID}|`)) injections.delete(key)
           await ctx.skill.reload()
-          log("injection and skills reloaded")
+          log(`injection reloaded for ${sessionID}; skills reloaded`)
         },
       })
     })

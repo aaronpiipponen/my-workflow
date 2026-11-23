@@ -242,6 +242,7 @@ const snapRun = async (sessionID) => {
   return event.system.map((part) => part.text).join("\n")
 }
 const initial = await snapRun("snap-a")
+await snapRun("snap-other")
 check("a session snapshots the injected text", initial.includes("method zero"))
 snap.ctx.session.get = async () => ({ location: { directory: snapRoot } })
 writeFileSync(path.join(snapRoot, "AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md"), "# Rules\n\n## 0. Changed\n\nnew method\n")
@@ -253,6 +254,7 @@ check("registers /workflow-reload", typeof reloadCommand?.execute === "function"
 await reloadCommand.execute({ sessionID: "snap-a" })
 check("/workflow-reload reloads the skill registry once", snap.captured.skillReloads === 1)
 check("/workflow-reload updates the existing session", (await snapRun("snap-a")).includes("new method"))
+check("/workflow-reload leaves every other session's snapshot alone", (await snapRun("snap-other")).includes("method zero"))
 
 let missingThrew = false
 const missing = harness(roots.main, {
