@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  Built with it: <a href="https://github.com/aaronpiipponen/course-explorer">course-explorer</a> and <a href="https://github.com/aaronpiipponen/toy-raytracer">toy-raytracer</a>.
+</p>
+
+<p align="center">
   <a href="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml/badge.svg"></a>
   <a href="/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
   <a href="/plugins/workflow/package.json"><img alt="Version 0.2.2" src="https://img.shields.io/badge/version-0.2.2-blue.svg"></a>
