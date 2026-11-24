@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml/badge.svg"></a>
   <a href="/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="/plugins/workflow/package.json"><img alt="Version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-blue.svg"></a>
+  <a href="/plugins/workflow/package.json"><img alt="Version 0.2.1" src="https://img.shields.io/badge/version-0.2.1-blue.svg"></a>
 </p>
 
 ---
