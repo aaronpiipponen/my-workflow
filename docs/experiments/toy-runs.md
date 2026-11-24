@@ -2,7 +2,7 @@
 
 This report asks whether parallel plan orchestrators under a coordinator can build one project together without merge conflicts, across every recorded test run.
 
-**Evidence status:** Observational, one run per configuration. **Run dates:** run001 23 November 2026, run002 23 to 24 November 2026, run003 24 November 2026.
+**Evidence status:** Observational, one run per configuration. **Run dates:** run001 23 November 2026, run002 23 to 24 November 2026, run003 24 November 2026, run004 24 November 2026.
 
 ## The question
 
@@ -26,25 +26,25 @@ The plans collide on purpose: plan-a and plan-b both rewrite the hit record, pla
 
 ### The seed and the runs
 
-The seed repository holds the start state on `seed/` branches, which no run writes: the project before any plan ran, and the workspace root with the three plans scoped. The first three runs began from that state. The seed now also holds each plan's first phase detailed and audited, so a run can link the orchestrators at once. A finished run is recorded as `run<n>/main`, `run<n>/plan-a`, `run<n>/plan-b`, `run<n>/plan-c` and `run<n>/workflow`. From run002 on, the top-level sessions' transcripts are committed on the branch of the directory each ran in. run001 predates that convention and has none. The seed's `main` shows the latest run.
+The seed repository holds the start state on `seed/` branches, which no run writes: the project before any plan ran, and the workspace root with the three plans scoped. The first four runs began from that state. The seed now also holds each plan's first phase detailed and audited, so a run can link the orchestrators at once. A finished run is recorded as `run<n>/main`, `run<n>/plan-a`, `run<n>/plan-b`, `run<n>/plan-c` and `run<n>/workflow`. From run002 on, the top-level sessions' transcripts are committed on the branch of the directory each ran in. run001 predates that convention and has none. The seed's `main` shows the latest run.
 
 A run never sees an earlier run, so its agents cannot copy an earlier solution. `toy/run.py new` builds the run's workspace from the `seed/` branches only, removes the remotes after the fetch, and writes a configuration that denies file access outside the run folder. When the global OpenCode configuration already loads this repository's plugins, the run uses them as loaded; otherwise the configuration loads them and denies the globally loaded copies of the same plugins. A shell command that deliberately searches the home directory could still find the seed.
 
 ### Models and roles
 
-Every role in every run, the orchestrators and the coordinator included, ran DeepSeek V4.1 Flash on the `low` variant. No person typed an answer in any run. A driving agent started the sessions through the service API and answered the orchestrators in run001 to run003, and run003's documentation hotfix was answered the same way. `toy/drive.py` exists to take the driving work off a person, leaving only the answers.
+Every role ran DeepSeek V4.1 Flash on the `low` variant. run004's coordinator started on `max` because the plugin created the session without an explicit model; the user switched it to `low` before the run's work. The other sessions ran `low`. No person typed an answer in run001 to run003; a driving agent started their sessions through the service API and answered the orchestrators, run003's documentation hotfix included. run004 was started by `toy/drive.py`, and the user answered its sessions. `toy/drive.py` exists to take the driving work off a person, leaving only the answers.
 
 ## Results
 
-| Measure | run001 | run002 | run003 |
-|---|---|---|---|
-| Orchestrators | 2 plain chat sessions | 3 `/plan` | 3 `/plan`, autonomous mode |
-| Hold pairs settled | 1, and a second armed | 1 | 3 |
-| Releases merged into `main` | 0 | 3 | 3, then 1 documentation hotfix |
-| Root rounds recorded | 16 | 96 | 134, then 1 |
-| Tests on `main` at the end | 5 | 23 | 23 |
-| Phases closed as `done` | 2 | 13 | 17 |
-| Root README written by the README guide | No | Yes, without a logo | Yes, with a logo |
+| Measure | run001 | run002 | run003 | run004 |
+|---|---|---|---|---|
+| Orchestrators | 2 plain chat sessions | 3 `/plan` | 3 `/plan`, autonomous mode | 3 `/plan`, autonomous mode |
+| Hold pairs settled | 1, and a second armed | 1 | 3 | 3 |
+| Releases merged into `main` | 0 | 3 | 3, then 1 documentation hotfix | 3, then 1 documentation hotfix |
+| Root rounds recorded | 16 | 96 | 134, then 1 | 115, then 1 |
+| Tests on `main` at the end | 5 | 23 | 23 | 20 |
+| Phases closed as `done` | 2 | 13 | 17 | 14 |
+| Root README written by the README guide | No | Yes, without a logo | Yes, with a logo | Yes, with a logo |
 
 ### run001: plumbing
 
@@ -96,9 +96,28 @@ The driving session intervened twice in the plan rounds. An implementer of a doc
 
 The second intervention exposed a gap in the `/plan` text. In the first pair, the leader assumed it wrote only its own resolution phase, and the partner's advancer started the other. The driving session then stated what the workflow means and `/plan` leaves implicit: the leader's `DETAIL RESOLUTION` advancer writes one file in each plan. The advancer's own instructions say so, and the leader's do not, so a leader can start with the wrong picture.
 
+### run004: the new sessions and the release boundary
+
+run004 ran the three `/plan` orchestrators, the coordinator and the three `/release` sessions through `toy/drive.py`, with the user answering the sessions. It started from the seed with each plan's first phase detailed and audited. The coordinator armed three pairs:
+
+| Pair | Overlap | Leader | Resolution phases |
+|---|---|---|---|
+| A2 and B2 | The hit record and its construction site, after B1 had landed the face side and texture coordinates | plan-a | A2r, B2r |
+| A3 and Z1 (plan-b) | The render loop and the scene after plan-b's B3 | plan-a | A3r, Z1r |
+| A3 and Z1 (plan-c) | The render loop and plan-c's progress line | plan-c | A3r, Z1r |
+
+The run found four defects:
+
+- The coordinator session started on `max` reasoning even though `LOCAL/models.json` and the stamped `coordinator.md` both name `low`. The plugin created it without an explicit model, so the session default won. It now passes `opencode.coordinator` explicitly and has a regression test.
+- In both pairs, the leader's `DETAIL RESOLUTION` advancer wrote only its own plan's resolution phase. The partner then waited for `RESOLVED` while the leader waited for the partner's file. The user had to tell the leader to write both. `/plan` and `phase-advancer.md` now say the leader's one advancer writes both files, the partner writes none, and `channel_close` refuses unless both `<held-id>r` rows exist.
+- The driver's release briefs told plan-c and plan-b to keep their plans open until plan-a's last release, which made plan-a's release close all three and contradicted independent plan closure. Each release now merges and archives its own plan and hands any later plan's docs-pass item forward.
+- The driver waited for the last release to close every plan before starting the hotfix; it now waits for each release to close its own plan. The hotfix runs after all three.
+
+The three releases merged in the order plan-c, plan-b, plan-a, and the documentation hotfix wrote the root README, behaviour pages, a logo and a render-path diagram. `main` ended with 20 tests (17 in `src/`, three command-line tests), and the final image shows the composed scene. All three plan folders were archived.
+
 ## Interpretation
 
-The coordination protocol works with real orchestrators on a small model. Across run002 and run003, four hold pairs were armed at the right phases, both sides stopped where the protocol says, the channels opened only after both stops, and every pair ended in one shared design and a resolution phase per plan. Every release merged with its conflicts settled by the shared designs, and no plan branch ever received another plan's commits.
+The coordination protocol works with real orchestrators on a small model. Across run002 to run004, seven hold pairs were armed at the right phases, both sides stopped where the protocol says, the channels opened only after both stops, and every pair ended in one shared design and a resolution phase per plan. Every release merged with its conflicts settled by the shared designs, and no plan branch ever received another plan's commits.
 
 The defects the runs found were in the workflow's messages and edge rules, not in the protocol's shape. Each one, from a hold that never woke an idle orchestrator to a child refused its parent's lock, was fixed and did not recur in a later run.
 
@@ -108,7 +127,7 @@ The releases do only what their briefs and the release workflow ask. run003's th
 
 - One run per configuration. Each result is one observation with one model, and a different model or a different seed may behave differently.
 - The user's role was played. In every run an agent answered the orchestrators, run003's hotfix included, and accepted their results, so no human judged the product decisions or the acceptances.
-- The driving session intervened twice in run003's plan rounds, so run003 does not show a long phase run or the resolution step without help.
+- The driving session intervened twice in run003's plan rounds, and run004 needed the user to correct the leader's resolution ownership and to close plan-c and plan-b. Neither run shows the resolution or release steps without help.
 - run001 has no transcripts, so its account rests on the run record rather than on session evidence.
 - The toy project is small. Three plans in about 1,000 lines of Rust meet in a few files, and a larger project may produce overlaps that touched-files blocks and investigators judge less reliably.
 - The documentation hotfix ran later, on run003's recorded end state, not in the same sitting as the plan rounds.
@@ -119,5 +138,4 @@ The releases do only what their briefs and the release workflow ask. run003's th
 - A run driven end to end by `toy/drive.py`, with every answer given in the chats by a person, which would show the flow with no agent playing the user and no intervention.
 - A run on a different model for the orchestrators, which would separate the workflow's robustness from DeepSeek V4.1 Flash's.
 - A larger project, where overlaps hide in callers and contracts rather than in shared files.
-- A `/plan` sentence stating that the leader's `DETAIL RESOLUTION` advancer writes both resolution phase files, which would keep a leader and a partner from each starting one.
 - The cost and time of a full run, per role.
