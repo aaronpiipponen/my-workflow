@@ -13,7 +13,7 @@ orchestrators' questions, which the person does in each session's chat:
    (the seed's plans start with their first phase detailed, so they are ready to link at once);
 3. waits until a plan's status table is finished and its orchestrator is idle, then starts its
    `/release` session, one release at a time in the fixed order plan-c, plan-b, plan-a, each with
-   its merge-order brief, and waits until that release has merged and is idle;
+   its merge-order brief, and waits until that release has merged and archived its own plan;
 4. after the last release has closed every plan, starts the documentation hotfix with `/release`
    in the integration worktree, which writes the project's documentation and root README.
 
@@ -62,22 +62,27 @@ RELEASE_COMMON = (
 )
 RELEASE_BRIEF = {
     "plan-c": (
-        "Release coordination: plan-c merges first. Merge plan-c into main. Keep plan-c open until "
-        "plan-a's release, which merges last: any docs-pass item on a file the other plans also "
-        "change stays for that release, so record its owner in docs-pass.md. Report the merge and "
-        "the open items, then stop."
+        "Release coordination: plan-c merges first and closes now. Merge plan-c into main, then "
+        "close and archive plan-c on its own. Before archiving, resolve every docs-pass item this "
+        "branch can resolve; for each item that a later plan must resolve because it edits a shared "
+        "file, copy it into that plan's docs-pass.md with its owner, and clear it from plan-c's list. "
+        "Do not keep plan-c open for another release. Report the merge, the handed-off items and the "
+        "archive move, then stop."
     ),
     "plan-b": (
-        "Release coordination: plan-b merges second, over plan-c. Merge plan-b into main. Keep "
-        "plan-b open until plan-a's release, which merges last, and hand it every docs-pass item on "
-        "a shared file, recorded with its owner in docs-pass.md. Clear an item that this branch "
-        "already resolved and say why. Report the merge and the open items, then stop."
+        "Release coordination: plan-b merges second, over plan-c, and closes now. Merge plan-b into "
+        "main, then close and archive plan-b on its own. Before archiving, resolve every docs-pass "
+        "item this branch can resolve; for each item plan-a must resolve because it edits a shared "
+        "file, copy it into plan-a's docs-pass.md with its owner, and clear it from plan-b's list. Do "
+        "not keep plan-b open for another release. Report the merge, the handed-off items and the "
+        "archive move, then stop."
     ),
     "plan-a": (
-        "Release coordination: plan-a merges last, over plan-c and plan-b. Merge plan-a into main, "
-        "then resolve every docs-pass item held for this release in all three plans, including the "
-        "repository map in AGENT-INSTRUCTIONS/LOCAL/project.md. When the gates pass, close and "
-        "archive plan-c, plan-b and plan-a."
+        "Release coordination: plan-a merges last, over plan-c and plan-b, and closes only plan-a. "
+        "Merge plan-a into main, resolve every docs-pass item held for this release in plan-a's list "
+        "(including items handed over by plan-c and plan-b), including the repository map in "
+        "AGENT-INSTRUCTIONS/LOCAL/project.md. When the gates pass, close and archive plan-a. plan-c "
+        "and plan-b are already archived by their own releases; do not touch them."
     ),
 }
 HOTFIX_BRIEF = (
@@ -213,9 +218,10 @@ def release_plans(run):
             command(session, "release", f"{RELEASE_BRIEF[plan]}\n\n{RELEASE_COMMON}")
             run.remember(key, session)
         session = run.sessions[key]
-        wait(f"the {plan} release merges", lambda: run.merged(plan) and not busy(session))
-    last = run.sessions[f"release {RELEASE_ORDER[-1]}"]
-    wait("the last release closes every plan", lambda: all(run.archived(plan) for plan in PLANS) and not busy(last))
+        wait(
+            f"the {plan} release merges and closes the plan",
+            lambda: run.merged(plan) and run.archived(plan) and not busy(session),
+        )
 
 
 def start_hotfix(run):
