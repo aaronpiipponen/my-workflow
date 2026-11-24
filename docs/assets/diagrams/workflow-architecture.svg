@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 416" role="img"
+     aria-labelledby="t d" font-family="system-ui, sans-serif">
+  <title id="t">Workflow architecture</title>
+  <desc id="d">The workflow repository links its instruction tree into each workspace root, registers
+  its plugins in the global OpenCode config, and stamps its subagent roles into the agent files. The
+  workflow plugin reads the linked text and the workspace's local slots for every request, and returns
+  the role's context to the OpenCode service. The service runs a chat session, an orchestrator
+  session, or a subagent child session.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a3a4b8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="416" rx="12" fill="#232434"/>
+
+  <rect x="48" y="64" width="864" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="90" text-anchor="middle" font-size="16" fill="#ececf2">Workflow repository</text>
+  <text x="480" y="112" text-anchor="middle" font-size="14" fill="#a3a4b8">shared text, skills, commands, plugins</text>
+
+  <rect x="48" y="192" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="164" y="218" text-anchor="middle" font-size="16" fill="#ececf2">Workspace root</text>
+  <text x="164" y="240" text-anchor="middle" font-size="14" fill="#a3a4b8">links and local slots</text>
+
+  <rect x="364" y="192" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="218" text-anchor="middle" font-size="16" fill="#ececf2">Agent files</text>
+  <text x="480" y="240" text-anchor="middle" font-size="14" fill="#a3a4b8">generated role files</text>
+
+  <rect x="680" y="192" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="796" y="218" text-anchor="middle" font-size="16" fill="#ececf2">Global config</text>
+  <text x="796" y="240" text-anchor="middle" font-size="14" fill="#a3a4b8">plugin entries</text>
+
+  <rect x="48" y="320" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#a98ae0" stroke-width="1.5"/>
+  <text x="164" y="346" text-anchor="middle" font-size="16" fill="#ececf2">Workflow plugin</text>
+  <text x="164" y="368" text-anchor="middle" font-size="14" fill="#a3a4b8">injects role context</text>
+
+  <rect x="364" y="320" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="346" text-anchor="middle" font-size="16" fill="#ececf2">OpenCode service</text>
+  <text x="480" y="368" text-anchor="middle" font-size="14" fill="#a3a4b8">runs every session</text>
+
+  <rect x="680" y="320" width="232" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="796" y="346" text-anchor="middle" font-size="16" fill="#ececf2">Role sessions</text>
+  <text x="796" y="368" text-anchor="middle" font-size="14" fill="#a3a4b8">chat and subagents</text>
+
+  <line x1="164" y1="128" x2="164" y2="192" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="172" y="164" font-size="14" fill="#a3a4b8">links</text>
+
+  <line x1="480" y1="128" x2="480" y2="192" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="488" y="164" font-size="14" fill="#a3a4b8">stamps roles</text>
+
+  <line x1="796" y1="128" x2="796" y2="192" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="804" y="164" font-size="14" fill="#a3a4b8">registers</text>
+
+  <line x1="164" y1="256" x2="164" y2="320" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="172" y="292" font-size="14" fill="#a3a4b8">reads</text>
+
+  <line x1="480" y1="256" x2="480" y2="320" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="488" y="292" font-size="14" fill="#a3a4b8">defines roles</text>
+
+  <polyline points="796,256 796,288 580,288 580,320" fill="none" stroke="#a3a4b8"
+            stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="688" y="280" text-anchor="middle" font-size="14" fill="#a3a4b8">loads plugins</text>
+
+  <line x1="280" y1="352" x2="364" y2="352" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="322" y="344" text-anchor="middle" font-size="14" fill="#a3a4b8">context</text>
+
+  <line x1="596" y1="352" x2="680" y2="352" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="638" y="344" text-anchor="middle" font-size="14" fill="#a3a4b8">runs</text>
+</svg>

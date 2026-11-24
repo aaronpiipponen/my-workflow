@@ -8,7 +8,8 @@ node_modules/
 !.env.example
 *.log
 .DS_Store
-PLUGINS/workflow/bindings.json
-PLUGINS/*/config.json
-PLUGINS/*/state.json
-PLUGINS/*/*.log
+plugins/workflow/bindings.json
+plugins/*/config.json
+plugins/*/state.json
+plugins/*/*.log
+toy/toy.json

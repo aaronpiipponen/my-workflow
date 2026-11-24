@@ -65,6 +65,11 @@ shape in the phase template, both injected above.
     the public path. Anything with neither a reader nor a requirement is invented scope (severity
     blocker); the auditor may stop the phase on it alone. Hashes on dumps and copies are legitimate,
     because those bytes may cross a network.
+11. **Touched files match.** The block between the `touched-files:start` and `touched-files:end`
+    markers exists and lists exactly the files the build plan, wiring, tests and docs steps
+    change, create or delete, plus every migration, generated file and configuration key they add.
+    A file the sections change but the block omits, a block entry no section changes, or a missing
+    block is a gap (severity blocker). Compare the phase's own text only; this check needs no reads.
 
 ## Output format
 

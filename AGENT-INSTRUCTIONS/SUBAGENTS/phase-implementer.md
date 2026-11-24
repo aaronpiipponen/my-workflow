@@ -22,7 +22,7 @@ its question, inputs, binding rules or decision owner are missing.
 
 ## Read first
 
-1. The repository rules, the verification protocol, the plan-execution rules, the checkout's gate
+1. The repository rules, the verification protocol, the plan-execution rules, the workspace's gate
    commands and the documentation style guide's content, writing, Markdown and code documentation
    rules are injected above; follow them. The style rules govern every governed prose you write: a
    `docs/` page, README prose, a file header, a doc comment, a configuration, ignore-file or script
@@ -175,6 +175,7 @@ USER-SPECIFIC TEST
 NOT REQUIRED
 ```
 
+Keep these titles and the `REVISION: <base>..<head>` line exactly as shown: tooling reads them.
 When user-only testing is required, replace `NOT REQUIRED` with `REQUIRED`, numbered
 steps, and exact expected results. Write one `REVIEW` line per review pass; the last line must read
 "no real finding", and a receipt without one is unfinished. Routine implementation narration and file

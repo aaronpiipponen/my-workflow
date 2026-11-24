@@ -1,8 +1,8 @@
-[submodule "PLUGINS/shadow-orchestrator"]
-	path = PLUGINS/shadow-orchestrator
+[submodule "plugins/shadow-orchestrator"]
+	path = plugins/shadow-orchestrator
 	url = https://github.com/aaronpiipponen/shadow-orchestrator.git
 	branch = main
-[submodule "PLUGINS/opencode-keepalive"]
-	path = PLUGINS/opencode-keepalive
+[submodule "plugins/opencode-keepalive"]
+	path = plugins/opencode-keepalive
 	url = https://github.com/aaronpiipponen/opencode-keepalive.git
 	branch = main

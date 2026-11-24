@@ -1,19 +1,19 @@
 """One-way update helper that mirrors a private checkout's selection into a public checkout.
 
-Usage, from the checkout being published:
+Usage, from the workspace being published:
 
     python AGENT-INSTRUCTIONS/PUBLISHING/export.py
 
 This is a private owner tool, never part of the published product. It replaces every
 non-protected file in the target root with the currently selected source files, removes every
 non-protected target file that the selection does not reproduce, and copies the explicit entries
-in the checkout's publishing data plus every shared documentation file it discovers under the
+in the workspace's publishing data plus every shared documentation file it discovers under the
 shared docs root. It performs one quick secret check of the selected files and the protected
 copies and one docs link check of the selected files before touching the target.
 
 The selection, the target root and the private-tree policy are data, not code: they live in
 ``selection.py`` beside this file. This module ships from the workflow repository, is linked into
-the checkout, and carries no paths of its own.
+the workspace, and carries no paths of its own.
 
 The authoritative source selection is built once in :func:`_source_selection`: the explicit
 ``FILE_MAP`` code/example entries followed by the publishable shared docs. The secret check, the
@@ -42,22 +42,22 @@ from urllib.parse import unquote
 
 import importlib.util
 
-# Keep the linked workflow tree free of bytecode caches when this file runs from a checkout.
+# Keep the linked workflow tree free of bytecode caches when this file runs from a workspace.
 sys.dont_write_bytecode = True
 
 _DATA_NAME = "workflow_export_data"
 
 
 def _load_data():
-    """Load one checkout's publishing data and locate the checkout it describes.
+    """Load one workspace's publishing data and locate the workspace it describes.
 
-    The selection lives beside this file, in the checkout's ``PUBLISHING/`` directory, so the
-    exporter ships here while each checkout owns its own selection.
+    The selection lives beside this file, in the workspace's ``PUBLISHING/`` directory, so the
+    exporter ships here while each workspace owns its own selection.
     """
     candidate = Path(os.path.abspath(__file__)).parent / "selection.py"
     if not candidate.is_file():
         raise SystemExit(
-            f"{candidate} is missing; run AGENT-INSTRUCTIONS/PUBLISHING/export.py from the checkout "
+            f"{candidate} is missing; run AGENT-INSTRUCTIONS/PUBLISHING/export.py from the workspace "
             "whose selection.py sits beside it"
         )
     spec = importlib.util.spec_from_file_location(_DATA_NAME, candidate)
@@ -80,7 +80,7 @@ SHARED_DOCS_ROOT = _DATA.SHARED_DOCS_ROOT
 TARGET_ROOT = _DATA.TARGET_ROOT
 PRIVATE_MARKER_PATTERN = _DATA.PRIVATE_MARKER_PATTERN
 
-# Publication-split policy describes which of this checkout's own trees are private.
+# Publication-split policy describes which of this workspace's own trees are private.
 _SHARED_DOC_LINK_FORBIDDEN = _DATA.SHARED_DOC_LINK_FORBIDDEN
 _PRIVATE_DOC_LINK_FORBIDDEN = _DATA.PRIVATE_DOC_LINK_FORBIDDEN
 _TARGET_GUARDED = _DATA.TARGET_GUARDED
@@ -140,7 +140,7 @@ def _exempt_email(match: re.Match[bytes]) -> bool:
 
 
 # The server images' own fixed account home, a path inside the containers, not on a host. The
-# checkout's selection names the accounts; an empty default exempts none.
+# workspace's selection names the accounts; an empty default exempts none.
 _CONTAINER_HOME_ACCOUNTS: frozenset[bytes] = frozenset(
     getattr(_DATA, "CONTAINER_HOME_ACCOUNTS", ())
 )

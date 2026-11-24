@@ -1,11 +1,11 @@
-"""Publishing data for one checkout, loaded by the workflow exporter.
+"""Publishing data for one workspace, loaded by the workflow exporter.
 
 Copy this file to ``AGENT-INSTRUCTIONS/PUBLISHING/selection.py`` and replace the values with that
-checkout's own selection. The lists below are an illustration, not a required layout.
+workspace's own selection. The lists below are an illustration, not a required layout.
 ``export.py`` beside it reads these names and nothing else; it carries no
-paths of its own, so the same exporter publishes any checkout.
+paths of its own, so the same exporter publishes any workspace.
 
-Source paths are relative to the checkout. Destinations are relative to ``TARGET_ROOT``.
+Source paths are relative to the workspace. Destinations are relative to ``TARGET_ROOT``.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ SHARED_DOCS_ROOT: str = "docs"
 SHARED_DOCS_EXCLUDED: tuple[str, ...] = ("docs/private", "docs/USER-OWNED-TODO.md")
 
 # (source, destination) for every exported file outside the shared documentation root. These two
-# are an illustration; list the checkout's own.
+# are an illustration; list the workspace's own.
 FILE_MAP: tuple[tuple[str, str], ...] = (
     ("LICENSE", "LICENSE"),
     ("README.md", "README.md"),
@@ -41,7 +41,7 @@ PUBLIC_ONLY: tuple[str, ...] = (".git", ".github", "config", ".env")
 # Directory names the target cleanup may remove at any depth.
 PRUNE_DIR_NAMES: frozenset[str] = frozenset({"__pycache__", "node_modules", ".cache"})
 
-# Text that must never appear in an exported file: this checkout's private trees and tooling.
+# Text that must never appear in an exported file: this workspace's private trees and tooling.
 PRIVATE_MARKER_PATTERN: bytes = (
     rb"(?:docs/private|AGENT-INSTRUCTIONS|USER-OWNED-TODO|AGENTS\.md)"
 )

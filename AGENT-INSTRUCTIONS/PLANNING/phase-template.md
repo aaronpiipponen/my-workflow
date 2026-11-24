@@ -35,6 +35,12 @@ so the detailing model can load it without re-reading the whole guide each phase
 - <exact config keys or migration filenames, or "none">
 - Retained records and their named consumer/owner: none, or exact justified inventory.
 
+**Touched files:**
+<!-- touched-files:start -->
+- `<path>` - <created | changed | deleted>: <one line on what changes>
+- Adds: <migration filenames, generated files, configuration keys, or "nothing">
+<!-- touched-files:end -->
+
 **Rules / MUST NOT:**
 - <permissions, no duplicate path, no fake fallback, no scope creep>
 
@@ -88,4 +94,10 @@ expected duration and owner of any slow run>.
 **Binding rules:** <the REPO-RULES §0a items this experiment could break, made specific>.
 **Budget:** <time/cost budget; stop and report if exceeded>.
 **Done when:** <the result note answers the question with an honest run record>.
+
+**Touched files:**
+<!-- touched-files:start -->
+- `<path>` - <created | changed | deleted>: <one line on what changes>
+- Adds: <generated files, configuration keys, or "nothing">
+<!-- touched-files:end -->
 ```

@@ -139,9 +139,9 @@ Rewrite the file in the `PLAN-PHASE-DETAILING.md` §3 shape, with these adaptati
 - Keep `Current state (verified)` but split it: **"Implemented and sound (do not rebuild)"**
   (the §3 compaction) and **"Broken / latent (root causes)"**.
 - `Build plan:` becomes the numbered **fix steps** from §4, full grade.
-- `Callers / wiring`, `Config / schema / migrations`, `Rules / MUST NOT`, `Tests`,
-  `User test` (as retest), and `Completion checklist (gate)` are all still required and still
-  filled to the detailing bar.
+- `Callers / wiring`, `Config / schema / migrations`, `Touched files` (rewritten to list the
+  fix steps' files), `Rules / MUST NOT`, `Tests`, `User test` (as retest), and
+  `Completion checklist (gate)` are all still required and still filled to the detailing bar.
 
 The reader must still be able to implement the whole remaining phase from this one file plus
 `full-plan.md`.

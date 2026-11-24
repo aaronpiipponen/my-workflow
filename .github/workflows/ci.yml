@@ -1,0 +1,62 @@
+# Run the plugin suites, the Python syntax checks and the documentation link check on every push
+# and pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugin-tests:
+    name: ${{ matrix.plugin }} on Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+        plugin: [workflow, coordinator, subagent-foreground]
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # The suites use mock contexts and need neither submodule.
+          submodules: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run the plugin suite
+        run: npm test --prefix plugins/${{ matrix.plugin }}
+
+  python-checks:
+    name: Python syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile the setup and toy scripts
+        run: python -m py_compile setup/setup-machine.py setup/plugins.py setup/setup-workspace.py toy/run.py toy/drive.py .github/scripts/check-links.py
+
+  docs-links:
+    name: Documentation links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check every link and heading anchor
+        run: python .github/scripts/check-links.py

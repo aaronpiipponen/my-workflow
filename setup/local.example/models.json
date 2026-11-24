@@ -1,0 +1,67 @@
+{
+  "_comment": "Single source for model assignment. 'opencode' holds each agent's model: fill every role before running AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py, which stamps each canonical body into .opencode/agents/. 'sessions' holds the model of each session the workflow plugin opens: the /plan and /release orchestrators started from the workspace root or the integration worktree, and the /shadow-plan working session; a command typed in a plan's worktree runs in that chat on its own model. Use '<provider>/<model>' and an optional variant name; delete variant when the model has none.",
+  "sessions": {
+    "plan": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "release": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "shadow": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    }
+  },
+  "opencode": {
+    "seam-scout": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "invariant-reviewer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "phase-spec-auditor": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "phase-implementation-reviewer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "ops-scout": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "phase-advancer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "phase-implementer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "document-writer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "comment-writer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "report-writer": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "coordinator": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    },
+    "conflict-investigator": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
+    }
+  }
+}

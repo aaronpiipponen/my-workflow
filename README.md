@@ -1,209 +1,193 @@
-# my-workflow
+<p align="center">
+  <img src="/docs/brand/logo.svg" alt="my-workflow" width="360">
+</p>
 
-Agent instructions drift when each checkout carries its own copy, and a change in one checkout
-leaves the others out of step. This kit holds one instruction set and delivers it into every
-checkout by links and injection, so every project follows the same rules and a fix reaches all of
-them at once. Each checkout's own values live in its `AGENT-INSTRUCTIONS/LOCAL/` slots.
+<p align="center">
+  An OpenCode workflow in which long-lived plan orchestrators build a project phase by phase, several
+  plans in parallel, with a coordinator that settles their overlaps before they become merge
+  conflicts.
+</p>
 
-## How it operates
+<p align="center">
+  <a href="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="/plugins/workflow/package.json"><img alt="Version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-blue.svg"></a>
+</p>
 
-The payload is a reusable agent workflow for OpenCode: shared instructions, subagents, plans, skills
-and plugins. A session runs in a checkout that links this repository. `AGENTS.md` at the checkout
-root holds the bootstrap, and `PLUGINS/workflow/bindings.default.json` maps every text to the roles
-that receive it, with no second copy. A binding may select `sections` by number (`"3a"`) or by
-title (`"Code documentation"`), so a comment writer receives the code-documentation sections and
-not the page or capture rules. The workflow plugin reads that map on each request, injects only
-what the active role needs, and pairs it with the checkout's own `AGENT-INSTRUCTIONS/LOCAL/` slots.
+---
+
+**Contents**
+
+- [Why it exists](#why-it-exists)
+- [What exists in the project](#what-exists-in-the-project)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Data and limits](#data-and-limits)
+- [Run your own copy](#run-your-own-copy)
+- [License](#license)
+
+## Why it exists
+
+An agent left alone on a large change drifts: it forgets the plan, decides product questions it should ask about, and builds what nobody reviewed. This workflow splits the work into roles. A plan orchestrator owns one plan and works with the user on every product decision, while short-lived subagents detail, implement and review one phase at a time under rules injected into each role. An orchestrator can work for days between the user's inputs.
+
+Because one orchestrator works for days between the user's inputs, running several plans side by side, each on its own branch, multiplies what gets built while the user's decisions stay the limit. That only pays off if their overlapping code does not end in merge conflicts and rework. The coordinator watches the parallel plans behind the scenes and, when two would collide, stops both at a fixed point and lets their orchestrators agree on one design first. The user keeps working with the orchestrators, not with the coordinator.
+
+The rules themselves live in this one repository and reach every workspace through links and injection, so a fix to a rule lands everywhere at once, and each workspace keeps only its own values.
+
+## What exists in the project
+
+- `AGENT-INSTRUCTIONS/` holds the shared rules, the plan templates, the subagent sources and the SVG renderer every workspace links.
+- `commands/` holds the `/plan` and `/release` orchestrator prompts.
+- `plugins/` holds the runtime plugins: role context, coordination, foreground subagents, configuration reload, and the keepalive and shadow orchestrator submodules.
+- `skills/` holds the procedure skills, whose content is the shared rule text itself.
+- `setup/` holds the machine and workspace setup scripts and the templates of each workspace's own slots.
+- `toy/` holds the toy project harness: creating, driving and recording test runs.
+- `docs/` holds this workflow's documentation, diagrams, screenshot and logo.
+
+## Features
+
+### Orchestrators and their subagents
+
+Each orchestrator is a long-lived chat session that owns decisions its subagents never make. A plan orchestrator, started with `/plan`, owns one plan's scope, phase sequence and handoff. A release orchestrator, started with `/release`, takes a finished plan through review, merge and closure. A shadow orchestrator, started with `/shadow-register`, sits above an interactive working session to hold its plan through a stream of small interface decisions. In autonomous mode, an orchestrator takes the routine decisions inside its plan's scope itself and records each one.
+
+The orchestrators delegate to subagents, each receiving only its own rules: a phase detailer and implementer, read-only reviewers and scouts, and the writers that serve the release. The `coordinator` session and the `conflict-investigator` it starts watch the parallel plans and settle their overlaps.
+
+![The orchestrator opens or audits a phase with the phase detailer, the detailer hands the phase document to the implementer, and the implementer returns a receipt to the orchestrator. The detailer delegates to read-only scouts and the spec audit, the implementer drives one reviewer pass, and work that needs writing leaves the cycle for the release, whose orchestrator briefs the writers.](/docs/assets/diagrams/workflow-phase-cycle.svg)
+
+### Plans and phases
+
+A plan is a folder: `full-plan.md` holds the scope and the phase status table with one phase `active`, each open phase has an implementation-grade document, each finished one a frozen contract, and the orchestrator's handoff lets it resume where it stopped. `/plan-new` creates a plan's branch, worktree and starting files, and `/shadow-plan` creates a shadow plan for interactive work, with its one cleanup phase filled in and its working session open. Every phase keeps its id for life, and in a plan every implementer starts through `phase_subagent`, which records the phase on the child session and checks the coordinator's holds first.
+
+### Parallel plans and the coordinator
+
+Each plan has its own worktree and branch, so several orchestrators run side by side. `/coordinator-link` in an orchestrator's chat links it to the workspace's coordinator, which receives the plan once and then one feed message per orchestrator round: the orchestrator's messages, its children's shortened reports, the plan's changes, each phase's touched-files block and the phase documents that stopped being active. When two plans may change the same code, the coordinator has a `conflict-investigator` check the overlap instead of reading the details itself.
+
+![The coordinator session shows PLAN CLOSED for plan-c, and its message that plan-a and plan-b are complete with nothing armed.](/docs/assets/screenshots/coordinator-feed.png)
+
+### Holds and the channel
+
+A real overlap becomes a hold pair: each plan stops before its overlapping phase, and the refused implementer start records that it arrived. Once both have stopped, the coordinator opens a channel between the two orchestrators. They agree on one shared design. The leader has a resolution phase written into each plan from it, then closes the channel, which releases both holds. Commits never move between plan branches.
+
+### Shared resource locks
+
+A workspace names its shared resources, such as a deployed instance or a worker machine, and the shell commands each lock guards. A matching command is refused until the session or an ancestor holds the lock. A held lock can be queued for with `lock_request` and transfers to the first waiter on release, a reminder follows a lock that stays held, and a lock whose session is gone is released.
+
+### Release, merge and hotfix
+
+A release reviews and fixes the public changes, merges the plan branch into the integration branch, resolves conflicts with earlier plans by their shared designs and done contracts, runs the gates and closes the plan. Releases run one at a time, and the user makes every public commit and push. `/release` in the integration worktree is a hotfix with no plan.
+
+### Shared rules, skills and guides
+
+A bindings map decides which shared rules each role receives, and the workflow plugin injects them once per session so the model's read cache holds. Procedures that only some work needs are skills carrying the shared text itself, and the documentation, README and logo guides govern every page, diagram and logo. `AGENT-INSTRUCTIONS/TOOLS/render-svg` renders each visual for inspection, and edits to the shared rules wait until the session has loaded the `agent-instructions` skill.
+
+### Toy runs
+
+A small Rust raytracer tests the whole flow before it reaches a real project, and its runs live in [toy-raytracer](https://github.com/aaronpiipponen/toy-raytracer). `toy/run.py` creates an isolated run from a seed repository, and `toy/drive.py` starts the three plan orchestrators, links them, starts the three releases in order and ends with a documentation hotfix, leaving only the orchestrators' questions to the person running the test. Each finished run is recorded in the seed with the transcript of every top-level session.
+
+The [documentation](/docs/README.md) has the user guide, the technical pages, the developer guide and setup.
+
+## Tech stack
+
+| Layer | Technology | Role |
+|---|---|---|
+| Agent runtime | OpenCode 2.4.1 | Runs the orchestrator, coordinator and subagent sessions |
+| Plugins | Node.js 22, ES modules | Inject role context, coordinate plans, wait for children |
+| Workflow text | Markdown and JSON | Rules, bindings, commands and skills |
+| Setup and toy harness | Python 3 | Machine wiring, workspace links, run creation, driving and recording |
+| Diagrams and logo | Hand-written SVG | Documentation visuals |
+| Continuous integration | GitHub Actions | Plugin suites and Python checks |
+
+## Architecture
+
+The workflow repository owns every rule, plugin and setup script, and a change to it reaches every workspace. A workspace owns its own values in its `LOCAL/` slots, its plan folders and coordinator state in the workspace root, and one Git worktree per plan. The workflow plugin turns the shared rules into each session's context, and the coordinator plugin keeps the parallel plans apart. The user owns every product decision and every public commit.
 
 The delivery path from this repository into a running session:
 
-![The workflow repository links its instruction tree into the checkout, stamps the agent role files and registers its plugins in the global OpenCode config. The workflow plugin reads the linked text and the checkout's local slots, and the OpenCode service runs the role sessions.](ASSETS/workflow-architecture.svg)
+![The workflow repository links its instruction tree into the workspace, stamps the agent role files and registers its plugins in the global configuration. The workflow plugin reads the linked text and the workspace's local slots, and the OpenCode service runs the role sessions with that context.](/docs/assets/diagrams/workflow-architecture.svg)
 
-### The three orchestrators
+A workspace with parallel plans, where the user works with the orchestrators and the coordinator runs behind them:
 
-Each orchestrator runs as a long-lived session in the chat and owns decisions the subagents never
-make.
+![The user works with the plan orchestrators, one per plan, each in its own worktree. The coordinator runs behind them, receives a feed from every orchestrator and sends holds back, and the user can also talk to it. The orchestrators write the plan folders and commit to their own branches, and a release merges a plan branch in the main worktree.](/docs/assets/diagrams/parallel-workspace.svg)
 
-- Plan orchestrator, started with `/plan`: owns product intent, `full-plan.md` scoping, phase
-  sequencing and serial handoffs. It reads the requirements and the product documentation itself,
-  routes open-ended scouting to `ops-scout`, and delegates detailing, implementation and review.
-- Release orchestrator, started with `/release`: takes finished private work through export,
-  documentation audit and fixes, deployment, and the report for the public commit and push. It
-  uses read-only scouts and writers, and calls `phase-implementer` only on the user's word.
-- Shadow orchestrator, started with `/shadow-register`: binds a second session above an
-  interactive working session, so the plan holds through a stream of small interface decisions.
-  `/shadow-register-manual` starts it with a typed message, `/shadow-wake` sends it a message, and
-  `/shadow-wake-manual` wakes it with a typed message.
+### Repository layout
 
-### The subagents they run
+- [`AGENT-INSTRUCTIONS/`](/AGENT-INSTRUCTIONS) holds the shared rules, plan templates, subagent sources and the SVG renderer.
+- [`commands/`](/commands) holds the orchestrator prompts.
+- [`plugins/`](/plugins) holds the runtime plugins.
+- [`skills/`](/skills) holds the procedure skills.
+- [`setup/`](/setup) holds the setup scripts and the workspace slot templates.
+- [`toy/`](/toy) holds the toy run harness and the seed's public README.
+- [`docs/`](/docs) holds the documentation.
 
-Every child receives only its own injected rules, and every caller owns the final judgment.
+## Data and limits
 
-- Phase roles: `phase-advancer` details the active phase, audits completed work and advances the
-  status table. `phase-implementer` implements exactly one detailed phase and returns a
-  verification receipt.
-- Read-only reviewers: `phase-spec-auditor` checks a phase document before work,
-  `invariant-reviewer` checks a diff against the repository rules, and
-  `phase-implementation-reviewer` audits one phase's implementation. None edits.
-- Scouts: `seam-scout` maps a code area to files, callers and tests. `ops-scout` investigates live
-  state over a read-only shell.
-- Writers: `document-writer` writes documentation pages and diagrams and recaptures screenshots.
-  `comment-writer` edits code comments and test names. `report-writer` writes experiment reports
-  and charts.
+A plan's working state lives in its plan folder in the workspace root, which the workflow plugin commits after every session round, so no plan history is lost. The coordinator's links, holds, locks and pending feed live in files under the root's `.opencode/coordinator/`, so a plugin reload loses nothing. The worktrees hold the project code and the links to the shared instructions.
 
-### The phase cycle
+A plan's name is also its branch and worktree name. The status table is the single source of truth for a plan's phases. A hold cannot stop a phase whose implementer has already started, and a plan takes part in one hold pair at a time. The coordinator sees the plans only through their feed, so it judges overlaps from the touched-files blocks, the coming phases and the files implementers change outside their blocks, and its investigators read the code to confirm one.
 
-One phase moves through the orchestrator, the phase detailer and the phase implementer. The
-orchestrator writes the plan, the detailer writes and audits the phase document, and the implementer
-builds and verifies one phase. Each role receives its injected rules, tools, skills and restrictions,
-and the read-only scouts and reviewers support that cycle.
+The workflow has been tested on the toy project with one model, DeepSeek V4.1 Flash, as [Toy runs](/docs/experiments/toy-runs.md) reports.
 
-![The orchestrator opens or audits a phase with the phase detailer, the detailer hands the phase document to the implementer, and the implementer returns a receipt to the orchestrator. The detailer delegates to read-only scouts and reviewers, the implementer drives one reviewer pass, and the orchestrator briefs the writers on the release path.](ASSETS/workflow-phase-cycle.svg)
+## Run your own copy
 
-### Skills
+Requirements:
 
-`SKILLS/` holds eight procedure skills: `agent-instructions`, `debugging`, `documentation-style`,
-`documentation-workflow`, `plan-authoring`, `plan-detailing`, `plan-remediation` and `ui-building`. Each
-`SKILL.md` holds the trigger, a short guidance paragraph and a `source` naming the governing shared
-file. The workflow plugin registers the skill with that file's text as its content, so loading the
-skill delivers the procedure itself and the procedure keeps one authoritative home.
+- Git with submodule support.
+- Node.js 22 or later.
+- Python 3 with its standard library.
+- OpenCode 2.4.1 or later.
 
-### Plugins
+1. Clone the repository with its submodules. The result is a checkout with `plugins/`, `AGENT-INSTRUCTIONS/`, `setup/` and `docs/`.
 
-`PLUGINS/` supplies the runtime around the orchestrators. `PLUGINS/workflow/` is the role-context
-hook: it reads the bindings map on each request and injects each agent's sections, plus the role's
-files in a session started with `/plan` or `/release`, which it registers from `COMMANDS/`. It
-registers the skills with their shared text and the `phase_new` tool, holds edits to the
-instruction tree until the `agent-instructions` skill is loaded, and refuses shell writes to it.
-After editing instruction files, run `/workflow-reload` in the working session to apply them. `PLUGINS/subagent-foreground/` adds `subagent_foreground`, which blocks until a
-child reports so the caller can use the answer in the same turn. `PLUGINS/opencode-keepalive/`
-warms the prompt cache of the orchestration models the checkout selects. `PLUGINS/config-reload/`
-makes config, agent and mode file changes take effect in a running service without a restart. The
-shadow orchestrator plugin belongs to the orchestrators above.
+   ```bash
+   git clone --recurse-submodules https://github.com/aaronpiipponen/my-workflow.git my-workflow
+   cd my-workflow
+   ```
 
-### Plans
+2. Run the machine setup. It creates the local configuration of each plugin that ships one, adds the plugin entries to the global OpenCode configuration after a backup, and lists what it created. `python setup/plugins.py off` turns this repository's plugins off again when a plugin change breaks OpenCode, and `on` turns them back on.
 
-A plan is a folder under `AGENT-INSTRUCTIONS/PLANS/<slug>/`, not one file. `full-plan.md` holds the
-scope, the design rules and the phase status table, and marks exactly one phase `active`. When a
-phase opens, `phases/<id>.md` carries its implementation-grade detail. When it completes,
-`done/<id>.md` holds its frozen contract and the status table flips to `done`. `benchmarks/` holds
-dated experiment records, and `docs-pass.md` carries the items deferred to the release. A failed
-retest re-details the same phase in place instead of starting another.
+   ```bash
+   python setup/setup-machine.py
+   ```
 
-## What is here
+3. Restart the OpenCode service. The result is a service that loads the workflow plugins.
 
-```text
-AGENT-INSTRUCTIONS/            everything a checkout receives
-  AGENTS.md                    the bootstrap, linked to the checkout root
-  BUILDING/ PLANNING/ PLANS/   shared text, linked into the checkout
-  SUBAGENTS/                   canonical roles, generator, partials
-  PUBLISHING/                  the exporter, the checkout's selection and its public assets
-COMMANDS/                      plan and release prompts, registered by the workflow plugin, run in
-                               the chat as commands, not agents
-SETUP/
-  setup-repo.py                link a checkout, create its local slots
-  LOCAL.example/               every slot a checkout owns, including its models
-PLUGINS/workflow/              role-context hook, commands, skills, edit guards, phase_new tool,
-                               bindings matrix
-PLUGINS/subagent-foreground/   the subagent tool that waits for the child's report
-PLUGINS/config-reload/         live reload of config, agent and mode files
-PLUGINS/shadow-orchestrator/   submodule
-PLUGINS/opencode-keepalive/    submodule
-SKILLS/                        procedure skills (front matter naming the shared text, never copies)
-ASSETS/                        workflow diagrams (delivery path, phase cycle)
-```
+   ```bash
+   opencode service restart
+   ```
 
-`AGENT-INSTRUCTIONS/` is the payload, and `AGENTS.md` lands at the checkout root. `LOCAL/` is the
-checkout's own and is created from `SETUP/LOCAL.example/`.
+4. Set up a workspace from a bare clone of your project and its integration worktree. The result is a linked instruction tree, the workspace's own slots and stamped agents.
 
-## On another machine
+   ```bash
+   mkdir -p /srv/example && cd /srv/example
+   git clone --bare https://example.org/project.git project.git
+   git -C project.git worktree add ../main main
+   python /path/to/my-workflow/setup/setup-workspace.py .
+   ```
 
-```sh
-git clone --recurse-submodules https://github.com/aaronpiipponen/my-workflow.git my-workflow
-cd my-workflow
-python SETUP/setup-machine.py
-```
+5. Assign a model from a provider configured in OpenCode to every role in `AGENT-INSTRUCTIONS/LOCAL/models.json`, and to the plan, release and shadow sessions in its `sessions` table, and stamp the agents again. The result is one agent file per role on its model.
 
-That checks the two imported plugins out, copies each plugin's example configuration to its real
-`config.json` where one is missing, creates `PLUGINS/workflow/bindings.json` (the machine's list of
-governed checkouts), and adds the five local plugin entries to
-`~/.config/opencode/opencode.json`, backing that file up first. It leaves a configured entry and a
-local configuration untouched, so it is safe to run again after a `git pull`. It aborts rather
-than edit a config file that is not plain JSON.
+   ```bash
+   python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py
+   ```
 
-`--check` reports what is missing without writing anything.
+6. Open OpenCode in the workspace root, create a plan and start its orchestrator. The result is a new branch, worktree and plan folder, and the orchestrator's chat in that worktree.
 
-When a plugin change breaks OpenCode, `python SETUP/plugins.py off` turns off every global plugin
-that loads from this repository, by adding a `plugin.use` deny policy for each, and
-`python SETUP/plugins.py on` removes exactly those policies again. The plugin entries stay as they
-are, and the file is backed up first. `setup-machine.py --plugins off|on` runs the same switch.
+   ```text
+   /plan-new
+   /plan example-plan
+   ```
 
-Then restart the service once (`opencode service restart`) and set up each checkout that should use
-the workflow.
+7. To run plans in parallel, start each plan's orchestrator the same way and type `/coordinator-link` in each orchestrator's chat once its first phase is detailed. The result is a coordinator session in the workspace root that follows every linked plan.
 
-## Setting up a checkout
+8. Release the plan when its phases are done. The result is a merged integration branch and a closed plan.
 
-```sh
-python SETUP/setup-repo.py /path/to/checkout
-python SETUP/setup-repo.py --check /path/to/checkout
-```
+   ```text
+   /release example-plan
+   ```
 
-It symlinks `BUILDING/`, `PLANNING/`, `SUBAGENTS/`, `PUBLISHING/export.py`, `PLANS/README.md`, `AGENT-INSTRUCTIONS/README.md` and `AGENTS.md`. It creates `CURRENT-SCOPE.md`,
-`ORCHESTRATOR-HANDOFF.md`, every slot in `SETUP/LOCAL.example/`, and `.opencode/opencode.json` when
-the checkout has none. It registers the checkout with the plugin, then stamps the agents. An item
-that is already present is reported and left alone, and only a wrong or missing link fails the run.
-The plugin re-reads its bindings on every request, so a checkout registered while the service runs
-needs no restart.
-
-Writing through a symlink edits the workflow repository itself, so a workflow fix lands in every
-checkout at once. In a governed checkout the plugin refuses a shell command that names an
-instruction file and writes it: a redirection or `tee` into it, `sed -i`, `perl -i`, `mv`, `cp`,
-`rm` and similar, or a script that opens it for writing. A shell writer can rename over the link,
-leaving a regular file behind and detaching the checkout while the text looks right, and it skips
-the edit tool's check for the `agent-instructions` skill.
-
-The restriction covers the instruction tree outside `PLANS/`, `CURRENT-SCOPE.md` and
-`ORCHESTRATOR-HANDOFF.md`, plus `AGENTS.md`. The agents use in-place editors in product code. Use
-the edit tool for instruction files, and it writes through the link.
-
-Two things slip past a command-text rule: the tool's own `workdir` reaching shared text without
-naming it, and any writer you run yourself. `--check` is the backstop for both. It fails on a link
-that a regular file stands in for, a link whose workflow source is gone, an ignore entry the clone
-needs, and a LOCAL slot identical to its template. It does not fail on normal local customisation: a
-check that fires there gets ignored, and then it protects nothing.
-
-`AGENT-INSTRUCTIONS/LOCAL/` is the checkout's own: permission capabilities, gate and tool commands,
-the documentation specifics, per-role prose extensions, and any role it adds under `roles/`.
-`AGENT-INSTRUCTIONS/PUBLISHING/` is the checkout's too, except `export.py`, which is a link: the
-selection and the public assets live beside it.
-
-## Checks
-
-```sh
-python SETUP/setup-repo.py --check <checkout>
-cd <checkout> && python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py --check
-node PLUGINS/workflow/test/workflow.test.mjs
-node PLUGINS/subagent-foreground/test/foreground.test.mjs
-```
-
-The first two checks run against a checkout that links this repository. The payload's `AGENTS.md`
-lives under `AGENT-INSTRUCTIONS/`, not at this repository's root: it describes a consuming
-checkout, so it is not loaded while working here.
-
-## Cloning and updating the plugins
-
-```sh
-git clone --recurse-submodules <url>     # fresh clone
-git submodule update --init              # a clone that is already checked out
-
-git submodule update --remote --merge    # move both pins to their origin's tip
-```
-
-Each submodule pins one commit, so a clone is reproducible and `--remote` is the explicit update.
-The plugin checkouts carry no `config.json`, `state.json` or logs. Those are gitignored in each
-origin, and the machine that runs them holds them. The global `opencode.json` holds its absolute
-`options.config` paths, so the live configs are not part of this repository.
+The full procedures are in [Setup](/docs/setup.md).
 
 ## License
 
-MIT
+This project is released under the [MIT License](/LICENSE).

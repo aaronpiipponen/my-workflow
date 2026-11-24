@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" role="img"
+     aria-labelledby="t d" font-family="system-ui, sans-serif">
+  <title id="t">Release merge and hotfix</title>
+  <desc id="d">A release starts in the plan's worktree, exports the private work to the public
+  checkout, audits and fixes it there through the private repository, then merges the plan branch
+  into the integration branch in the integration worktree. The gates run after the merge and the
+  plan closes into the archive. A hotfix starts in the integration worktree and merges there with no
+  plan to close.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a3a4b8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="520" rx="12" fill="#232434"/>
+
+  <rect x="48" y="64" width="208" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="152" y="90" text-anchor="middle" font-size="16" fill="#ececf2">Plan worktree</text>
+  <text x="152" y="112" text-anchor="middle" font-size="14" fill="#a3a4b8">branch plan-a</text>
+
+  <rect x="336" y="64" width="240" height="64" rx="8"
+        fill="#2e3045" stroke="#a98ae0" stroke-width="1.5"/>
+  <text x="456" y="90" text-anchor="middle" font-size="16" fill="#ececf2">Release</text>
+  <text x="456" y="112" text-anchor="middle" font-size="14" fill="#a3a4b8">export and audit</text>
+
+  <rect x="672" y="64" width="240" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="792" y="90" text-anchor="middle" font-size="16" fill="#ececf2">Public checkout</text>
+  <text x="792" y="112" text-anchor="middle" font-size="14" fill="#a3a4b8">uncommitted changes</text>
+
+  <rect x="48" y="224" width="208" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="152" y="250" text-anchor="middle" font-size="16" fill="#ececf2">Hotfix</text>
+  <text x="152" y="272" text-anchor="middle" font-size="14" fill="#a3a4b8">no plan to close</text>
+
+  <rect x="336" y="224" width="240" height="64" rx="8"
+        fill="#2e3045" stroke="#a98ae0" stroke-width="1.5"/>
+  <text x="456" y="250" text-anchor="middle" font-size="16" fill="#ececf2">Integration worktree</text>
+  <text x="456" y="272" text-anchor="middle" font-size="14" fill="#a3a4b8">branch main</text>
+
+  <rect x="336" y="336" width="240" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="456" y="362" text-anchor="middle" font-size="16" fill="#ececf2">Gates</text>
+  <text x="456" y="384" text-anchor="middle" font-size="14" fill="#a3a4b8">after the merge</text>
+
+  <rect x="48" y="336" width="208" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="152" y="362" text-anchor="middle" font-size="16" fill="#ececf2">Plan archive</text>
+  <text x="152" y="384" text-anchor="middle" font-size="14" fill="#a3a4b8">closed plan</text>
+
+  <rect x="672" y="224" width="240" height="64" rx="8"
+        fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="792" y="250" text-anchor="middle" font-size="16" fill="#ececf2">Public commit</text>
+  <text x="792" y="272" text-anchor="middle" font-size="14" fill="#a3a4b8">the user</text>
+
+  <line x1="256" y1="96" x2="336" y2="96" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="296" y="88" text-anchor="middle" font-size="14" fill="#a3a4b8">start</text>
+
+  <line x1="576" y1="96" x2="672" y2="96" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="624" y="88" text-anchor="middle" font-size="14" fill="#a3a4b8">export</text>
+
+  <line x1="456" y1="128" x2="456" y2="224" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="464" y="180" font-size="14" fill="#a3a4b8">merge</text>
+
+  <line x1="456" y1="288" x2="456" y2="336" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="464" y="316" font-size="14" fill="#a3a4b8">run</text>
+
+  <polyline points="336,280 312,280 312,368 256,368" fill="none" stroke="#a3a4b8"
+            stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="320" y="302" font-size="14" fill="#a3a4b8">close</text>
+
+  <line x1="256" y1="256" x2="336" y2="256" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="296" y="248" text-anchor="middle" font-size="14" fill="#a3a4b8">fix</text>
+
+  <line x1="792" y1="128" x2="792" y2="224" stroke="#a3a4b8"
+        stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="800" y="180" font-size="14" fill="#a3a4b8">after review</text>
+
+  <text x="48" y="464" font-size="14" fill="#a3a4b8">The release never commits or pushes in the public checkout.</text>
+  <text x="48" y="492" font-size="14" fill="#a3a4b8">A release that changed the root README runs the visual pass over every changed visual.</text>
+</svg>

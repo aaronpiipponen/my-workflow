@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 584" role="img"
+     aria-labelledby="t d" font-family="system-ui, sans-serif">
+  <title id="t">A hold pair and its channel</title>
+  <desc id="d">The coordinator arms a hold on one phase of each plan, and each orchestrator stops before its held phase. Once both have stopped, the coordinator opens the channel between the two orchestrators. The leading orchestrator settles the overlap with the partner and writes one shared design, from which the leader has a resolution phase written into each plan. When both resolution phases pass the leader's check, the leader closes the channel and both holds are released.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a3a4b8"/>
+    </marker>
+  </defs>
+  <rect width="960" height="584" rx="12" fill="#232434"/>
+
+  <rect x="340" y="40" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="66" text-anchor="middle" font-size="16" fill="#ececf2">Coordinator</text>
+  <text x="480" y="88" text-anchor="middle" font-size="14" fill="#a3a4b8">arms holds, opens channel</text>
+
+  <rect x="48" y="152" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="188" y="178" text-anchor="middle" font-size="16" fill="#ececf2">Leading orchestrator</text>
+  <text x="188" y="200" text-anchor="middle" font-size="14" fill="#a3a4b8">stops before its held phase</text>
+  <rect x="388" y="152" width="184" height="64" rx="8" fill="#2e3045" stroke="#a98ae0" stroke-width="1.5"/>
+  <text x="480" y="178" text-anchor="middle" font-size="16" fill="#ececf2">Channel</text>
+  <text x="480" y="200" text-anchor="middle" font-size="14" fill="#a3a4b8">both plans held</text>
+  <rect x="632" y="152" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="772" y="178" text-anchor="middle" font-size="16" fill="#ececf2">Partner orchestrator</text>
+  <text x="772" y="200" text-anchor="middle" font-size="14" fill="#a3a4b8">stops before its held phase</text>
+
+  <path d="M420 104 V120 H188 V152" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="236" y="112" font-size="14" fill="#a3a4b8">hold armed</text>
+  <path d="M540 104 V120 H772 V152" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="724" y="112" text-anchor="end" font-size="14" fill="#a3a4b8">hold armed</text>
+  <path d="M480 104 V152" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="488" y="140" font-size="14" fill="#a3a4b8">opens</text>
+
+  <path d="M328 184 H388" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path d="M572 184 H632" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+  <rect x="340" y="264" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="290" text-anchor="middle" font-size="16" fill="#ececf2">Shared design</text>
+  <text x="480" y="312" text-anchor="middle" font-size="14" fill="#a3a4b8">PLANS/shared/&lt;pair&gt;.md</text>
+  <path d="M480 216 V264" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="488" y="246" font-size="14" fill="#a3a4b8">agreed and written by the leader</text>
+
+  <rect x="48" y="376" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="188" y="402" text-anchor="middle" font-size="16" fill="#ececf2">Resolution phase</text>
+  <text x="188" y="424" text-anchor="middle" font-size="14" fill="#a3a4b8">leader's plan, &lt;id&gt;r</text>
+  <rect x="632" y="376" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="772" y="402" text-anchor="middle" font-size="16" fill="#ececf2">Resolution phase</text>
+  <text x="772" y="424" text-anchor="middle" font-size="14" fill="#a3a4b8">partner's plan, &lt;id&gt;r</text>
+  <path d="M440 328 V352 H188 V376" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="236" y="344" font-size="14" fill="#a3a4b8">one per plan</text>
+  <path d="M520 328 V352 H772 V376" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="340" y="488" width="280" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="480" y="514" text-anchor="middle" font-size="16" fill="#ececf2">Holds released</text>
+  <text x="480" y="536" text-anchor="middle" font-size="14" fill="#a3a4b8">leader closes the channel</text>
+  <path d="M188 440 V464 H440 V488" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="236" y="456" font-size="14" fill="#a3a4b8">passes the leader's check</text>
+  <path d="M772 440 V464 H520 V488" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

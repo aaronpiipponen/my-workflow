@@ -23,7 +23,7 @@ where things are and how they connect. Batch your reads freely rather than one f
 
 The only hard boundary is that you cannot change anything or run the project:
 
-- The `shell` capability `review` in the checkout's `workflow.toml` is the sole shell allowlist;
+- The `shell` capability `review` in the workspace's `workflow.toml` is the sole shell allowlist;
   every other shell command is denied, so never attempt tests or builds, such as `uv`,
   `pytest` or `ruff`, or edits. Never redirect git output to a file (`>`, `>>`, `--output`, `tee`);
   read it directly.
@@ -55,7 +55,7 @@ For each requested area, report what exists and how it connects:
 - **Tests** — test files that cover it (and the command that runs them, from config/docs —
   do not run it).
 - **Config** — any config key it reads, with value and where it is declared.
-- **Invariants** — the invariants in the checkout's `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`
+- **Invariants** — the invariants in the workspace's `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`
   §2 that this area touches, named without evaluating them.
 - **Related** — adjacent symbols, wiring, or migrations the caller will need to understand
   the area, even if not explicitly asked about.

@@ -1,0 +1,10 @@
+{
+  "_comment": "Where the toy project's seed repository and its active run live, the public repository address used in the seed's run links, the plugin directories a run must not load when the global configuration loads the workflow from another checkout (empty when it loads this one, whose plugins a run then uses as loaded), the shared scratch directory a run may use, and the model with its variant (provider/model#variant) that toy/drive.py starts every session on. Copy this file to toy.json and fill every value. See toy/run.py.",
+  "seed": "~/toy-raytracer/seed",
+  "runs": "~/toy-raytracer-runs",
+  "public_repo": "https://github.com/example/toy-raytracer",
+  "denied_plugins": [],
+  "branches": ["main", "plan-a", "plan-b", "plan-c"],
+  "scratch": "/tmp/opencode",
+  "model": "commandcode/deepseek/deepseek-v4.1-flash#low"
+}

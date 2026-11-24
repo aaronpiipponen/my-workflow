@@ -1,0 +1,67 @@
+# Permission capabilities for one workspace.
+#
+# A role names one capability per action (`write: docs`, `shell: review`), and the generator
+# expands it, including each pattern's absolute form. A pattern that names a path is relative to
+# the workspace root. Tighten these to what the roles actually need; a capability that grants `*`
+# is a deliberate decision, not a default.
+
+[write.code]
+allow = ["*"]
+
+# Documentation pages, the interface wording file when the brief fixes a string, and the
+# screenshot capture scripts their images come from. Replace each placeholder with the workspace's
+# own path or file.
+[write.docs]
+allow = ["docs/**", "<capture script directory>/**", "<interface wording file>"]
+
+# Comment and docstring edits inside source, with the publication material and secrets protected.
+# This is deny mode: everything is editable except the listed trees. Use `allow` instead when you
+# want to name the source roots explicitly.
+[write.comments]
+deny = ["docs/**", "AGENT-INSTRUCTIONS/**", ".opencode/**", ".env*", "deploy/**", "data/**",
+        "models/**"]
+
+# Experiment reports, their generated charts and hand-written diagrams.
+[write.reports]
+allow = ["docs/experiments/**", "docs/charts/**", "docs/diagrams/**"]
+
+# Read-only inspection: reading, searching and Git history.
+[shell.review]
+allow = ["cat *", "ls *", "head *", "tail *", "wc *", "grep *", "sed -n *", "git status *",
+         "git log *", "git show *", "git diff *", "git grep *", "git rev-parse *",
+         "git rev-list *", "git blame *", "git ls-files *"]
+
+# The same, plus the documentation checker, the capture scripts and the SVG syntax check. Replace
+# each placeholder with the workspace's own command.
+[shell.docs]
+allow = ["cat *", "ls *", "head *", "tail *", "wc *", "grep *", "sed -n *", "git status *",
+         "git log *", "git show *", "git diff *", "git grep *",
+         "<documentation checker> *", "<capture command> *", "<browser check command>*",
+         "xmllint --noout *", "AGENT-INSTRUCTIONS/TOOLS/render-svg *"]
+
+# The same, plus the repository's format and lint checks. Add them when the workspace has them.
+[shell.comments]
+allow = ["cat *", "ls *", "head *", "tail *", "grep *", "sed -n *", "git status *", "git log *",
+         "git show *", "git diff *", "git grep *"]
+
+# The same, plus chart generation and diagram checking.
+[shell.reports]
+allow = ["cat *", "ls *", "grep *", "git status *", "git diff *",
+         "<chart command> *", "<documentation checker> *"]
+
+# Read-only inspection of the project repository from the workspace root, where the coordinator
+# and its conflict investigator run: test merges and diffs between plan branches. `merge-tree`
+# writes loose objects but never moves a branch or touches a worktree.
+[shell.investigate]
+allow = ["cat *", "ls *", "grep *", "git --git-dir=project.git merge-tree *",
+         "git --git-dir=project.git diff *", "git --git-dir=project.git log *",
+         "git --git-dir=project.git show *", "git --git-dir=project.git merge-base *",
+         "git --git-dir=project.git branch *"]
+
+# A full shell for the live-state investigator. Its body carries the read-only discipline.
+[shell.full]
+allow = ["*"]
+
+# Directories outside the workspace that a writer may write into.
+[external.renders]
+allow = ["/tmp/opencode/renders/*"]

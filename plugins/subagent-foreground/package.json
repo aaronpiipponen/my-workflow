@@ -1,0 +1,11 @@
+{
+  "name": "opencode-subagent-foreground",
+  "version": "0.2.0",
+  "description": "A subagent tool that waits for the child session's report",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/foreground.test.mjs"
+  },
+  "license": "MIT"
+}

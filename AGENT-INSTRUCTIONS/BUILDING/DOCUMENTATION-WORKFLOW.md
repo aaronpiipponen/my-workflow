@@ -3,7 +3,7 @@
 Two rules cover documentation. `DOCUMENTATION-STYLE-GUIDE.md` is binding for every writing task
 and governs the text itself. This file covers who does what, when, and with which commands.
 
-Paths this file names by role are named for the checkout in `AGENT-INSTRUCTIONS/LOCAL/`: the
+Paths this file names by role are named for the workspace in `AGENT-INSTRUCTIONS/LOCAL/`: the
 documentation set, its private part and the user-owned file are in `documentation-pages.md`; the
 interface wording file, the screenshots, and the experiment-report, chart and diagram directories
 are in `documentation-pages.md`; the experiment directory is in `repo-rules-domain.md`; the
@@ -11,7 +11,7 @@ checker, chart generator, capture scripts and example instance are in `docs-tool
 
 ## Where documentation lives
 
-- **The shared set** is the checkout's published documentation. The release exports it to the public
+- **The shared set** is the workspace's published documentation. The release exports it to the public
   checkout named in `AGENT-INSTRUCTIONS/LOCAL/publish.md`. It documents the exported version, and it
   never names another version, deployment, cloud host, or worker topology.
 - **The private set** is never exported. Its pages have the same kinds, scale and style as the shared
@@ -21,7 +21,7 @@ checker, chart generator, capture scripts and example instance are in `docs-tool
 - **Agent material** (`AGENTS.md`, `AGENT-INSTRUCTIONS/`, plans, requirements, decision records,
   ledgers, scope) never appears in the documentation, and no page links to it. Instruction files may
   point into the documentation.
-- A file the checkout marks user-owned is never read as task input, edited, moved or linked.
+- A file the workspace marks user-owned is never read as task input, edited, moved or linked.
 - Code documentation states its facts locally. Source does not name a document. When a fact spans
   modules, it belongs in a developer page, and the code carries no pointer to it.
 
@@ -35,7 +35,7 @@ made, not left for the release to replace.
   comments, and the interface wording and its translations in the interface wording file. Apply
   `DOCUMENTATION-STYLE-GUIDE.md` to every one of them, and fix the prose the
   change makes stale there too. A new or changed interface string reads naturally in every language
-  the checkout translates, never as a word-for-word copy.
+  the workspace translates, never as a word-for-word copy.
 - The implementer updates the affected pages in the same change as the code and the tests, to the
   style guide, in the shared set or in the private set by where the behavior lives. The same guide
   governs every other prose line the change writes, including file headers, doc comments,
@@ -64,7 +64,7 @@ roles below apply there.
 ### Writers and scouts
 
 - **`document-writer`.** Background writing agents, a few at a time on disjoint file scopes, one
-  writer for a narrow task. A writer edits the checkout's documentation, the translated values in
+  writer for a narrow task. A writer edits the workspace's documentation, the translated values in
   the interface wording file, and the capture script of a screenshot it retakes under the capture
   scripts, and no other file. One writer at a time owns the wording file. A writer captures each
   screenshot named in its brief from the example instance into the screenshots directory, or into
@@ -115,8 +115,8 @@ style guide's "Experiment reports" and "Charts" sections govern the text and the
 5. **Check the pages.** Run the documentation checker on every changed page and chart, render every
    chart and diagram and look at the image, and read every page for the style guide's report rules
    and for any reference to the sources.
-6. **Register and commit.** The orchestrator adds the pages to the checkout's documentation index
-   when it has one, runs the checkout's documentation checks against the example instance, and
+6. **Register and commit.** The orchestrator adds the pages to the workspace's documentation index
+   when it has one, runs the workspace's documentation checks against the example instance, and
    commits on the working branch.
 
 The orchestrator spawns only `report-writer` and read-only `ops-scout` for this work, in the
@@ -125,7 +125,7 @@ like every other shared page.
 
 ## Tools
 
-The checkout's documentation tools and their exact invocations live in
+The workspace's documentation tools and their exact invocations live in
 `AGENT-INSTRUCTIONS/LOCAL/docs-tools.md`: the Markdown and diagram checker, chart generation,
 screenshot capture, any published-page checks and the example instance. Run the commands from that file; do
 not invent an invocation, and do not substitute a weaker check.

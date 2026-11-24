@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" role="img"
+     aria-labelledby="t d" font-family="system-ui, sans-serif">
+  <title id="t">Parallel plan workspace</title>
+  <desc id="d">The user works with the plan orchestrators, one per plan, each in its own worktree. The coordinator runs behind them: it receives a feed from every orchestrator and sends holds back. The user can also talk to the coordinator. The orchestrators write the plan folders and commit to their own branches in the project repository, and a release merges a plan branch in the main worktree.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a3a4b8"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a98ae0"/>
+    </marker>
+  </defs>
+  <rect width="960" height="500" rx="12" fill="#232434"/>
+
+  <rect x="260" y="40" width="200" height="64" rx="8" fill="#2e3045" stroke="#a98ae0" stroke-width="1.5"/>
+  <text x="360" y="66" text-anchor="middle" font-size="16" fill="#ececf2">User</text>
+  <text x="360" y="88" text-anchor="middle" font-size="14" fill="#a3a4b8">owns every decision</text>
+
+  <path d="M360 104 V158" fill="none" stroke="#a98ae0" stroke-width="1.5" marker-end="url(#arrow-accent)"/>
+  <text x="372" y="136" font-size="14" fill="#a3a4b8">works with each orchestrator</text>
+
+  <text x="40" y="150" font-size="16" fill="#a3a4b8">Plan orchestrators</text>
+  <rect x="40" y="158" width="640" height="112" rx="8" fill="none" stroke="#4a4c6b" stroke-width="1.5"/>
+  <rect x="60" y="182" width="168" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="144" y="208" text-anchor="middle" font-size="16" fill="#ececf2">plan-a</text>
+  <text x="144" y="230" text-anchor="middle" font-size="14" fill="#a3a4b8">own worktree</text>
+  <rect x="276" y="182" width="168" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="360" y="208" text-anchor="middle" font-size="16" fill="#ececf2">plan-b</text>
+  <text x="360" y="230" text-anchor="middle" font-size="14" fill="#a3a4b8">own worktree</text>
+  <rect x="492" y="182" width="168" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="576" y="208" text-anchor="middle" font-size="16" fill="#ececf2">plan-c</text>
+  <text x="576" y="230" text-anchor="middle" font-size="14" fill="#a3a4b8">own worktree</text>
+
+  <rect x="760" y="182" width="176" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="848" y="208" text-anchor="middle" font-size="16" fill="#ececf2">Coordinator</text>
+  <text x="848" y="230" text-anchor="middle" font-size="14" fill="#a3a4b8">behind the scenes</text>
+
+  <path d="M680 196 H760" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="702" y="186" font-size="14" fill="#a3a4b8">feed</text>
+  <path d="M760 232 H680" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="700" y="256" font-size="14" fill="#a3a4b8">holds</text>
+
+  <path d="M460 72 H848 V182" fill="none" stroke="#a3a4b8" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <text x="600" y="62" font-size="14" fill="#a3a4b8">can also talk to it</text>
+
+  <rect x="60" y="330" width="216" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="168" y="356" text-anchor="middle" font-size="16" fill="#ececf2">Plan folders</text>
+  <text x="168" y="378" text-anchor="middle" font-size="14" fill="#a3a4b8">in the workspace root</text>
+  <rect x="340" y="330" width="216" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="448" y="356" text-anchor="middle" font-size="16" fill="#ececf2">project.git</text>
+  <text x="448" y="378" text-anchor="middle" font-size="14" fill="#a3a4b8">one branch per plan</text>
+  <rect x="620" y="330" width="216" height="64" rx="8" fill="#2e3045" stroke="#4a4c6b" stroke-width="1.5"/>
+  <text x="728" y="356" text-anchor="middle" font-size="16" fill="#ececf2">main worktree</text>
+  <text x="728" y="378" text-anchor="middle" font-size="14" fill="#a3a4b8">integration branch</text>
+
+  <path d="M168 270 V330" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="180" y="304" font-size="14" fill="#a3a4b8">plan files</text>
+  <path d="M448 270 V330" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="460" y="304" font-size="14" fill="#a3a4b8">branch commits</text>
+  <path d="M556 362 H620" fill="none" stroke="#a3a4b8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="566" y="352" font-size="14" fill="#a3a4b8">merge</text>
+
+  <rect x="40" y="426" width="220" height="40" rx="8" fill="none" stroke="#4a4c6b" stroke-width="1.5"/>
+  <path d="M56 446 H96" stroke="#a3a4b8" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="108" y="451" font-size="14" fill="#a3a4b8">optional contact</text>
+</svg>

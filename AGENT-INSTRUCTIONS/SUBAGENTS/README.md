@@ -46,7 +46,7 @@ orchestrator retains product intent and workflow state.
   role-specific rule overrides inherited general background-delegation instructions; the
   orchestrator's direct launches remain background tasks.
 - During scoping, phase detailing, and review, spawn relevant read-only agents below. The
-  orchestrator reads intent and high-level documents (the checkout's requirements and its product and
+  orchestrator reads intent and high-level documents (the workspace's requirements and its product and
   architecture documentation, starting at the entry points named in
   `AGENT-INSTRUCTIONS/LOCAL/project.md`, plus the active plan and
   phase document) itself and never through a scout; for open-ended detail scouting it
@@ -82,7 +82,7 @@ The bounded reviewers and `seam-scout` have shell permissions only for the exact
 prefixes in the shared `shell` capabilities, rendered into OpenCode with a preceding catch-all
 deny. Those capabilities are authoritative; do not maintain another command list here.
 `ops-scout` has a full shell but is strictly read-only under its own instructions. No reviewer/scout may run tests or builds (for example `uv`, `pytest` or `ruff`) or edit.
-Read the checkout's local tooling files with shell `cat` when permitted; otherwise report missing access or use
+Read the workspace's local tooling files with shell `cat` when permitted; otherwise report missing access or use
 tracked evidence, never bypass the reader boundary.
 
 - `seam-scout` - read-only scout. Explores the tree freely within one area and returns exact
@@ -112,15 +112,20 @@ tracked evidence, never bypass the reader boundary.
   with a `TERM REQUEST` and is resumed with the chosen term. Interrupted or unfinished writers resume
   their exact session. Resuming a fully finished writer requires explicit user approval; otherwise a
   follow-up fix starts a fresh writer. Its rules arrive as injected sections of the documentation
-  style guide plus the checkout's slots under `AGENT-INSTRUCTIONS/LOCAL/`; the body carries no copy.
+  style guide plus the workspace's slots under `AGENT-INSTRUCTIONS/LOCAL/`; the body carries no copy.
 - `report-writer` - OpenCode-only experiment report writer used by the documentation workflow's
   report writing (`../BUILDING/DOCUMENTATION-WORKFLOW.md`, Rule 3). It takes one scoped brief, reads
   the recorded experiment evidence freely (archived plans, results and experiment code included),
   never names or links it, and edits only the experiment-report and charts directories. Its rules arrive as
-  injected sections of the style guide plus the checkout's slots.
+  injected sections of the style guide plus the workspace's slots.
 - `comment-writer` - OpenCode-only code documentation writer used by the release
   (`../BUILDING/RELEASE-WORKFLOW.md`). It takes one handoff of verified code-comment findings
   and changes only comment text, docstrings, file headers and named test names.
+- `conflict-investigator` - read-only investigator the coordinator starts on one suspected overlap
+  between two parallel plans. It runs in the workspace root, reads both plans, their touched-files
+  blocks and code, runs test merges through `git --git-dir=project.git`, and returns `HOOK SET`
+  with both trigger points and the leading plan, or `NOT SET`. It never arms a hold; the
+  coordinator does, with the `hold_arm` tool.
 - `phase-advancer` - OpenCode-only independent phase auditor/detailer. Details initial or
   blocked active phase, or audits implemented phase while reusing passing evidence on
   unchanged revision, prepares remediation or completion, and details exactly one next
@@ -149,11 +154,11 @@ subscription provider lacks the requested model. Ask instead.
 
 Each canonical source has `description` frontmatter plus prompt body. OpenCode is the only harness.
 Read-only sources declare `access: read-only`; a writing source declares `write: <capability>`; a source that runs commands
-declares `shell: <capability>`; a source that writes outside the checkout declares
+declares `shell: <capability>`; a source that writes outside the workspace declares
 `external: <capability>`; roles that delegate declare bounded `delegates`; `mode` defaults to
-`subagent`. The capability values live in the checkout's
+`subagent`. The capability values live in the workspace's
 `AGENT-INSTRUCTIONS/LOCAL/workflow.toml`; the generator expands each pattern, including its
-checkout-absolute form, and writes the model, the mode and every permission rule into generated
+workspace-absolute form, and writes the model, the mode and every permission rule into generated
 frontmatter. A capability that does not exist in `workflow.toml` fails the stamp rather than
 silently granting nothing. `AGENT-INSTRUCTIONS/LOCAL/models.json` is the single source for
 assignment; this file does not restate it. Do not switch to an unavailable provider as a fallback.

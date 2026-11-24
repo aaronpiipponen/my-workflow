@@ -30,9 +30,9 @@ removal against that baseline. A failed cleanup blocks completion.
 node id first. Do not rerun passing tests on unchanged code, and run each required full suite only
 once at the end.
 
-### The checkout's gates
+### The workspace's gates
 
-The gate commands, the conditional-gate table and the CI triggers belong to the checkout: they live
+The gate commands, the conditional-gate table and the CI triggers belong to the workspace: they live
 in `AGENT-INSTRUCTIONS/LOCAL/gates.md`. Run the fast gate for every code change, a conditional gate
 only when the phase touches that seam or is explicit milestone proof, and reuse passing evidence on
 an unchanged revision.
@@ -64,7 +64,7 @@ an unchanged revision.
 ---
 ## 2. Deployment boundary
 
-The checkout's deployment ritual, its services, addresses and redeploy commands live in
+The workspace's deployment ritual, its services, addresses and redeploy commands live in
 `AGENT-INSTRUCTIONS/LOCAL/deploy.md`. This workflow owns the boundary, not the ritual: a redeploy
 requires a clean checkout at the tested commit, and deployment, implementation review, acceptance
 and plan closure stay separate steps.

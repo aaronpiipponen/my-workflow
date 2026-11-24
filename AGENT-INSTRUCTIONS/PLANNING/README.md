@@ -19,6 +19,8 @@ named thing does not exist. A plan that defers cleanly beats one that papers ove
   nothing. The `plan-detailing` skill, loaded by the phase advancer before it details; create the
   phase file with the `phase_new` tool. The phase spec auditor receives the detail bar, the
   no-invention protocol and the template by injection.
+- **`plan-templates/`** — the starting `full-plan.md`, `scope.md` and `handoff.md` of a new plan,
+  with `{plan}` standing for its name. `/plan-new` writes them into the new plan folder.
 - **`PLAN-PHASE-REMEDIATION.md`** — a phase that failed its retest: keep the working parts and
   re-detail the fix in place to full grade. The `plan-remediation` skill.
 

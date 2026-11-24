@@ -2,7 +2,7 @@
 
 Use this when a change adds or changes anything a user sees or touches: a control, a list, a row, an
 overlay, a menu item, a notice, a help text or a layout. It applies to detailing such a phase,
-implementing it and reviewing it. The checkout names its reference components, its motion and
+implementing it and reviewing it. The workspace names its reference components, its motion and
 styling values and its list of known interface defects in `AGENT-INSTRUCTIONS/LOCAL/ui-reference.md`.
 
 An interface change is finished when it looks, moves and responds like the parts of the app beside it,
@@ -18,7 +18,7 @@ at every supported width, the first time and every time. Rendering without error
 - When no component fits, copy the reference element's structure, styling values (spacing, sizes,
   radius, colours, typography) and motion. A new look needs an explicit reason in the phase
   document; "it was quicker" is not one.
-- A known interface defect listed by the checkout is never a reference element. Do not copy a
+- A known interface defect listed by the workspace is never a reference element. Do not copy a
   defective element's behaviour, and do not cite it as precedent.
 
 ## 2. Motion parity

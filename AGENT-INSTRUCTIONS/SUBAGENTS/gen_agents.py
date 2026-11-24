@@ -1,13 +1,17 @@
 """Generate repository subagents for OpenCode.
 
 Canonical prompts live in ``AGENT-INSTRUCTIONS/SUBAGENTS/<name>.md`` (shipped by the
-workflow repository) and ``AGENT-INSTRUCTIONS/LOCAL/roles/<name>.md`` (roles a checkout adds
-for itself). Model assignments live in the checkout's ``AGENT-INSTRUCTIONS/LOCAL/models.json``. Permission patterns live in ``LOCAL/workflow.toml`` as named capabilities; a role
-names a capability and the generator expands it, including each pattern's absolute form.
+workflow repository) and ``AGENT-INSTRUCTIONS/LOCAL/roles/<name>.md`` (roles a workspace adds
+for itself). Model assignments live in the workspace's ``AGENT-INSTRUCTIONS/LOCAL/models.json``. Permission patterns live in ``LOCAL/workflow.toml`` as named capabilities; a role
+names a capability and the generator expands it, including each pattern's absolute forms in the
+workspace root and in every worktree.
+
+The agents are stamped into the workspace root's ``.opencode/agents/``, which OpenCode also reads
+for sessions in the worktrees below it.
 
 Generated files must not be edited directly.
 
-Usage, from the checkout being stamped:
+Usage, from the workspace root or any of its worktrees:
     python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py
     python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py --check
 """
@@ -19,7 +23,9 @@ import sys
 import tomllib
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-REPO_ROOT = os.path.dirname(os.path.dirname(SRC_DIR))
+# SUBAGENTS links into the workflow repository, so the root comes from the AGENT-INSTRUCTIONS
+# folder the script was reached through, resolved past a worktree's link to the root's real folder.
+REPO_ROOT = os.path.dirname(os.path.realpath(os.path.dirname(SRC_DIR)))
 LOCAL_DIR = os.path.join(REPO_ROOT, "AGENT-INSTRUCTIONS", "LOCAL")
 LOCAL_MODELS = os.path.join(LOCAL_DIR, "models.json")
 WORKFLOW = os.path.join(LOCAL_DIR, "workflow.toml")
@@ -34,7 +40,7 @@ def _gen_note(name):
 
 
 def _source_path(name):
-    """A shipped role wins over a local role of the same name, so a checkout can shadow nothing."""
+    """A shipped role wins over a local role of the same name, so a workspace can shadow nothing."""
     shipped = os.path.join(SRC_DIR, f"{name}.md")
     if os.path.exists(shipped):
         return shipped
@@ -102,8 +108,8 @@ def _apply_partials(name, body):
 def _load_workflow():
     if not os.path.exists(WORKFLOW):
         raise SystemExit(
-            f"{os.path.relpath(WORKFLOW, REPO_ROOT)} is missing. Run SETUP/setup-repo.py in this "
-            "checkout, or copy SETUP/LOCAL.example/workflow.toml into AGENT-INSTRUCTIONS/LOCAL/."
+            f"{os.path.relpath(WORKFLOW, REPO_ROOT)} is missing. Run setup/setup-workspace.py for this "
+            "workspace, or copy setup/local.example/workflow.toml into AGENT-INSTRUCTIONS/LOCAL/."
         )
     with open(WORKFLOW, "rb") as source:
         return tomllib.load(source)
@@ -126,11 +132,16 @@ def _capability(name, kind, table):
 
 
 def _expanded(patterns):
-    """Yield each pattern plus its checkout-absolute form, which OpenCode matches separately."""
+    """Yield each pattern plus its absolute forms, which OpenCode matches separately.
+
+    A relative pattern names a path in the session's worktree, or in the root for the instruction
+    tree, whose real files OpenCode reports by their canonical path.
+    """
     for pattern in patterns:
         yield pattern
         if not pattern.startswith(("/", "~", "*")):
             yield os.path.join(REPO_ROOT, pattern)
+            yield os.path.join(REPO_ROOT, "*", pattern)
 
 
 def _permission_rule(action, resource, effect):
@@ -229,8 +240,8 @@ def render_opencode(name, metadata, body, assignment, workflow):
 def _load_models():
     if not os.path.exists(LOCAL_MODELS):
         raise SystemExit(
-            f"{os.path.relpath(LOCAL_MODELS, REPO_ROOT)} is missing. Run SETUP/setup-repo.py in this "
-            "checkout, or copy SETUP/LOCAL.example/models.json into AGENT-INSTRUCTIONS/LOCAL/."
+            f"{os.path.relpath(LOCAL_MODELS, REPO_ROOT)} is missing. Run setup/setup-workspace.py for this "
+            "workspace, or copy setup/local.example/models.json into AGENT-INSTRUCTIONS/LOCAL/."
         )
     with open(LOCAL_MODELS, encoding="utf-8") as source:
         return json.load(source)
@@ -282,14 +293,20 @@ def orphaned_files():
 
 
 def generate():
+    """Stamp every agent file whose content differs; return how many were written.
+
+    OpenCode reloads an agent when its file changes, so an unchanged file is left untouched.
+    """
     os.makedirs(OPENCODE_DIR, exist_ok=True)
     for path in orphaned_files():
         os.remove(path)
+    stale = {path for path, _ in stale_files()}
     count = 0
     for path, content in _targets():
-        with open(path, "w", encoding="utf-8") as target:
-            target.write(content)
-        count += 1
+        if path in stale:
+            with open(path, "w", encoding="utf-8") as target:
+                target.write(content)
+            count += 1
     return count
 
 
@@ -314,7 +331,7 @@ def main(argv):
             print(f"STALE: {os.path.relpath(path, REPO_ROOT)} ({reason})")
         return 1 if stale or orphaned_files() else 0
     count = generate()
-    print(f"Stamped {count} agent file(s) for {len(agent_names())} agent(s).")
+    print(f"Stamped {count} changed agent file(s) of {len(agent_names())} agent(s).")
     return 0
 
 

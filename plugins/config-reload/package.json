@@ -1,0 +1,10 @@
+{
+  "name": "opencode-config-reload",
+  "version": "0.2.0",
+  "description": "Live-reload OpenCode v2 config, agent and mode files",
+  "keywords": ["opencode", "opencode-plugin", "live-reload"],
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "files": ["index.js"]
+}

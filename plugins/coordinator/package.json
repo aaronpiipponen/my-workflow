@@ -1,0 +1,16 @@
+{
+  "name": "opencode-coordinator",
+  "version": "0.2.0",
+  "description": "Coordinate parallel plan orchestrators: link command, feed, holds, channel and resource locks",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./tui": "./tui.js",
+    "./rpc": "./rpc.js"
+  },
+  "scripts": {
+    "test": "node test/coordinator.test.mjs"
+  },
+  "license": "MIT"
+}

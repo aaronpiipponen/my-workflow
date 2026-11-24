@@ -3,9 +3,9 @@
 These instructions apply to every AI agent working in this repository. They are repo-wide rules,
 not temporary plan guidance.
 
-Sections 1, 2 and 3 and the checkout's own records and exceptions are specific to the checkout: they
+Sections 1, 2 and 3 and the workspace's own records and exceptions are specific to the workspace: they
 live in `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`, with the same numbering. Everything a role
-injects is resolved against that file when the checkout provides it.
+injects is resolved against that file when the workspace provides it.
 
 ---
 
@@ -26,7 +26,7 @@ experiment phases with the `experiment` gate level. When the kind is unclear, as
   Every rule in this file applies, proportionally to a hobby project.
 - **Experiment code** answers one question for one user decision: measurement, tuning,
   prompt/model/ranking comparison, benchmarks, oracle generation, judging, sampling, one-off
-  analysis. It is disposable and lives in the checkout's experiment directory, named in
+  analysis. It is disposable and lives in the workspace's experiment directory, named in
   `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`. It may import product code;
   product code never imports it. Hardcoded values, copy-paste, inline logic in the script,
   foreground or `nohup` runs, crashing on unexpected input, and no tests are all acceptable.
@@ -129,7 +129,7 @@ necessity from the actual changed tests and support code, not passing results or
   ratios, or suite/package test-count limits. Estimates and reported counts are observations,
   never limits or acceptance gates. Do not compress formatting or cram scenarios to meet numbers.
 - **What to test.** Focused proof of user-visible or data-integrity behavior of a public
-  service, command or CLI/JSON report. The behaviors this checkout must prove are listed in
+  service, command or CLI/JSON report. The behaviors this workspace must prove are listed in
   `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`. One regression test only for an observed bug
   that lost or corrupted data or wasted long work.
 - **What never to test.** Private helpers; wording or exact error text; exact request bodies
@@ -168,7 +168,7 @@ necessity from the actual changed tests and support code, not passing results or
 12. Simplicity (§0): no speculative recovery, defensive re-checks, validator matrices or
     legacy-format support.
 13. No history or plan ids in permanent files.
-14. The checkout's publication invariant holds (§2 of the domain rules): no shared file, name or
+14. The workspace's publication invariant holds (§2 of the domain rules): no shared file, name or
     value distinguishes public from private, private-only material names itself private and stays
     unexported, and every deployment-specific value lives in an ignored file with an `examples/`
     counterpart.

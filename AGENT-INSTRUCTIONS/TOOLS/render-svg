@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Render one SVG to a PNG at a pixel size with the cached Chromium headless shell.
+#
+# Usage: render-svg <svg file> <png file> <width> <height>
+# The PNG is written outside the repository, as the documentation workflow requires.
+
+set -euo pipefail
+
+[ "$#" -eq 4 ] || { echo "usage: render-svg <svg file> <png file> <width> <height>" >&2; exit 2; }
+browsers=${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}
+shell=$(find "$browsers" -type f -path '*chrome-headless-shell-linux-*/chrome-headless-shell' 2>/dev/null | sort -V | tail -1)
+[ -n "$shell" ] || { echo "no Chromium headless shell under $browsers" >&2; exit 1; }
+svg=$(realpath "$1")
+"$shell" --no-sandbox --hide-scrollbars --default-background-color=00000000 \
+  --window-size="$3,$4" --screenshot="$2" "file://$svg" >/dev/null 2>&1
+[ -s "$2" ] || { echo "render produced no image: $2" >&2; exit 1; }
+echo "$2"

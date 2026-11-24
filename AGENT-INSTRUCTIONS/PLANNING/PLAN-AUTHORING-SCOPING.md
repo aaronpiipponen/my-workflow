@@ -69,7 +69,7 @@ Skip research and write the scoped plan directly when:
 Research protocol:
 
 1. Ask short questions until purpose, actors, context, boundaries, needs, risks, and non-goals are clear.
-2. Read the checkout's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree first.
+2. Read the workspace's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree first.
 3. Record decisions, open questions, constraints, and obvious non-goals.
 4. Stop before exact implementation detail. Do not name signatures, migrations, or caller lists unless already central and verified.
 5. Convert research note into `full-plan.md` once user-owned decisions are answered or
@@ -108,7 +108,7 @@ Suggested research note shape:
 
 Read before writing, but calibrate depth to this document's purpose:
 
-- Read the checkout's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree first.
+- Read the workspace's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree first.
 - Read the architecture docs for touched subsystems.
 - Open enough current files to know where the work belongs and whether named seams exist.
 - Do not fabricate APIs, routes, tables, or config keys.
@@ -197,6 +197,10 @@ valid when waiting on a user milestone/decision or after completion.
 
 Rules:
 
+- A phase id never changes once assigned, and no phase is renumbered: a retitled phase keeps its
+  id, a split phase's children take `<id>.<n>` (`PLAN-PHASE-DETAILING.md`), a resolution phase of
+  a parallel-plan overlap takes `<held id>r`, and a dropped phase stays as a `not applicable` row.
+  Holds between parallel plans and the implementer sessions name phases by these ids.
 - At most one phase is `active`. Do not start another until the active one's move-on gate passes;
   zero active phases is valid while waiting on a user milestone/decision or after completion.
 - `Phase file` points at `phases/<id>.md` once the active phase has been detailed,
@@ -241,7 +245,10 @@ Boundary rules:
   classes and following the survey method below. The result is a dated note in the plan's `benchmarks/`. It looks for unnecessary complexity,
   duplication, dead code, redundant checks/records, test bloat, stale docs and drift from the user's
   decisions. Findings go to the user and are not fixed inside that phase. The plan is not closed or
-  archived until the user accepts the survey results.
+  archived until the user accepts the survey results. A shadow plan, created with `/shadow-plan`, is
+  the one exception: its single cleanup phase S1 is reviewed after every accepted item, those review
+  rounds stand in for the survey, and the user's acceptance of S1 takes the place of the survey
+  acceptance.
 - **Survey method (binding).** This method covers every survey: full, closing
   and delta. Follow it exactly; do not add steps.
   1. The orchestrator dispatches one independent read-only `ops-scout` per area, and the areas run
@@ -287,7 +294,7 @@ inside the plan so implementers do not chase separate guidance. Include a sectio
 ```markdown
 ## How to implement this plan
 
-1. Read the checkout's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree, then every file
+1. Read the workspace's product and architecture documentation, its repository map (named in `AGENT-INSTRUCTIONS/LOCAL/project.md`) and the actual tree, then every file
    named by the selected phase.
 2. Never invent a signature, column, table, route, config key, or import. If it does not exist, stop and report drift.
 3. One phase at a time; implementers commit whenever useful, with no squashing and no per-phase commit limit. Only one phase is `active` in the status table.
@@ -509,6 +516,6 @@ Before handing over a scoped plan, check:
 - [ ] Closure belongs to the release (`../BUILDING/RELEASE-WORKFLOW.md`) after the closing survey; the
       release's input includes the plan's `docs-pass.md` list.
 - [ ] The last phase includes the closing survey of all new/changed areas; closure waits for the user's
-      acceptance of its results.
+      acceptance of its results. A shadow plan has no survey (§3b).
 - [ ] Open questions are explicit.
 - [ ] Later detailed expansion is delegated to `PLAN-PHASE-DETAILING.md`.

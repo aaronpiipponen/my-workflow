@@ -21,7 +21,7 @@ comment you are already editing, and you report every such extra change.
 
 ## The rules that bind you
 
-The path this checkout lives at is injected from
+The path this workspace lives at is injected from
 `AGENT-INSTRUCTIONS/LOCAL/comment-writer.md`. The code documentation rules are the injected
 documentation style guide: placement, no backstory, file headers, doc comments, inline and
 block comments, configuration comments and tests. Do not restate them here.
@@ -34,7 +34,7 @@ block comments, configuration comments and tests. Do not restate them here.
    tests a claim depends on.
 3. Fix the text. Keep the file's formatting: indentation, quote style, wrap width.
 4. Run the self-check below over every changed file with `grep` and `git diff`.
-5. Run the checkout's fast gate for the files you changed: the language formatter and linter, and
+5. Run the workspace's fast gate for the files you changed: the language formatter and linter, and
    the frontend format check and typecheck when you changed a frontend file. The exact commands are
    in `AGENT-INSTRUCTIONS/LOCAL/gates.md`. Fix what your edits broke.
 6. Return the closing report.

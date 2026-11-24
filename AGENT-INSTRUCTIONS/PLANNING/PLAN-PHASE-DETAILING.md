@@ -48,7 +48,7 @@ file for that active phase.
 
 Before writing the detailed phase:
 
-1. Read the checkout's product and architecture documentation, its repository map and the current tree.
+1. Read the workspace's product and architecture documentation, its repository map and the current tree.
 2. Read the source vague phase and its neighboring phases for dependencies.
 3. Shape the phase before detailing: name the user-visible / operator-visible outcome,
    the non-goals, and any decisions or tradeoffs that need user input.
@@ -75,11 +75,19 @@ Write a single phase using the skeleton in **`AGENT-INSTRUCTIONS/PLANNING/phase-
 template into `AGENT-INSTRUCTIONS/PLANS/<slug>/phases/<id>-<title>.md` and fill every
 placeholder from current code. The sections are, in order: heading + `Status` /
 `Depends on` / `Scope` / `Gate level` / `Simplicity statement`; `Current state (verified)`; `Read first (do not invent)`;
-`Build plan`; `Callers / wiring to update`; `Config / schema / migrations`;
+`Build plan`; `Callers / wiring to update`; `Config / schema / migrations`; `Touched files`;
 `Rules / MUST NOT`; `Tests`; `User test`; `Completion checklist (gate)`; `Exit`.
 
 This is the place for exact detail. If the implementation model follows only those
 bullets, the phase should complete.
+
+`Touched files` sits between its two marker comments, which tooling reads without loading the rest
+of the phase. It lists every file the build plan, the wiring, the tests and the docs steps change,
+create or delete, one path per line with one short line on what changes there, followed by every
+migration, generated file and configuration key the phase adds. It is a summary of the sections
+above it, never a new decision: when those sections change, as in remediation or re-detailing,
+rewrite the block in the same edit. An experiment brief carries the same block for the files it
+writes.
 
 ---
 
@@ -297,8 +305,10 @@ Split when:
 - exact steps exceed what one weak model can hold;
 - the phase contains multiple product/authority/UX decisions needing distinct user gates.
 
-When split, update the scoped plan or write child phases (`<id>.1`, `<id>.2`, etc.) with
-clear gates. Include one sentence explaining why the split is needed; do not split as a
+When split, update the scoped plan or write child phases with clear gates. Each child gets
+the parent's id plus `.<n>`, numbered from 1, at any depth: `A2` splits into `A2.1`, `A2.2`
+and `A2.3`, and `A2.2` splits into `A2.2.1` and `A2.2.2`. The split rows replace the
+parent's row in the status table. Include one sentence explaining why the split is needed; do not split as a
 habit or to create one-file phases.
 
 ---

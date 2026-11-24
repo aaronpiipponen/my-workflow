@@ -21,6 +21,16 @@ Caller must name plan, active phase, and one mode:
 - `REVIEW AND ADVANCE`: caller provides implementer's `<base>..<head>` commit range and compact verification
   receipt, relevant implementer comments or `NONE`, and result of any required
   user-specific test or `not required`.
+- `DETAIL RESOLUTION`: two parallel plans overlap and their orchestrators agreed on a shared design.
+  Caller names both plans, both held phases, the pair id and the shared design file,
+  `PLANS/shared/<pair>.md`, one copy for both plans. Write one resolution
+  phase in each plan, `PLANS/<plan>/phases/<held-id>r-<title>.md`, each covering only what its own
+  branch must change to reach the shared design, at the full detailing bar. In each plan's status
+  table, insert the resolution phase as the `active` row directly before its held phase, set the
+  held phase back to `planned` with its `Phase file` cleared (it is re-detailed after the
+  resolution lands), and keep every other row. The partner plan's code is in its worktree, the
+  sibling folder `../<partner plan>/`; read it there. Run `phase-spec-auditor` on both files, and
+  return `DETAIL READY` naming both files, or the usual `USER DECISION REQUIRED` or `BLOCKED`.
 
 If input required for selected mode or required user-only evidence is absent, return
 `BLOCKED` with missing item and stop. In review mode, treat comments as leads and receipt
@@ -42,7 +52,7 @@ running: wait for them in the same turn and always return the final verdict bloc
 
 ## Read first
 
-1. The repository rules, the plan-execution rules, the verification protocol and the checkout's gate
+1. The repository rules, the plan-execution rules, the verification protocol and the workspace's gate
    commands are injected above; follow them. Load the `plan-detailing` skill before detailing a phase
    and `plan-remediation` when a phase failed verification. Load the `documentation-style` skill
    before writing or reviewing any governed prose, whether or not the phase touches `docs/`, and
@@ -146,10 +156,10 @@ In `REVIEW AND ADVANCE` mode:
   it without inventing contracts or resolving product/architecture choices. If the final
   implementation and verification are complete,
   report readiness without inventing work. Do not close or archive the plan until the user has
-  explicitly authorized closure and accepted the closing survey results.
+  explicitly authorized closure and accepted the closing survey results (S1, for a shadow plan).
 - Only after those user gates, when every plan row is done or not applicable and no milestone is
-  open, move the plan folder with `git mv` to `PLANS/archive/<slug>/` in the completion commit and
-  repoint only the path pointers that move breaks, per `PLANS/README.md` §Archive. Never archive
+  open, move the plan folder to `PLANS/archive/<slug>/` with a plain `mv` (plan files live in the
+  workspace root, which the workflow plugin commits) and repoint only the path pointers that move breaks, per `PLANS/README.md` §Archive. Never archive
   an open milestone or infer closure authorization from implementation or startup success.
 - If incorrect only in small ways that break no data integrity, security or behavior the next phase
   builds on (a style/CSS defect, a missing doc ripple, a small wiring or wording fix), do NOT create a
@@ -248,13 +258,15 @@ If it is not, use tracked benchmark evidence or report the missing access instea
 Return concise structured result:
 
 ```text
-MODE: DETAIL ACTIVE | REVIEW AND ADVANCE
+MODE: DETAIL ACTIVE | REVIEW AND ADVANCE | DETAIL RESOLUTION
 PHASE VERDICT: DETAIL READY | COMPLETE | REMEDIATION READY | USER DECISION REQUIRED | BLOCKED
 FINISHED PHASE: <id and current status/path, or NONE for pre-implementation detail>
 NEXT UNIT: <next phase/remediation id and detailed path, or NONE>
 VERIFICATION ACTION: <NOT APPLICABLE for detail | REUSED receipt SHA | focused commands run>
 ORCHESTRATOR COMMENTS: <only unresolved decisions, blockers, or plan-level facts, or NONE>
 ```
+
+Keep each field name exactly as shown, one per line: tooling reads them.
 
 Write every fact next implementer needs into detailed active/next/remediation phase
 document; generic implementer handoff carries no extra implementation context. Do not

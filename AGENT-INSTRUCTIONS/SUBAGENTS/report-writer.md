@@ -73,7 +73,7 @@ and attempt counts.
 
 ## Charts and diagrams
 
-The checkout's chart and diagram rules live in
+The workspace's chart and diagram rules live in
 `AGENT-INSTRUCTIONS/LOCAL/report-writer.md`.
 
 ## Process
@@ -120,7 +120,7 @@ Your final message is this report, in this order and nothing else:
 - Chart verification: final rendered PNG paths and what you checked.
 - Diagram verification: final rendered PNG paths and what you checked, or the exact rendering blocker.
 - Code snippets added or changed and the evidence checked for each.
-- Proposed index entries, where the checkout publishes an index: id, path, nav and proposed position.
+- Proposed index entries, where the workspace publishes an index: id, path, nav and proposed position.
 - Links to report pages that do not exist yet.
 - Disagreements between sources, and claims you left out because the sources did not settle them.
 - Proposed glossary entries.

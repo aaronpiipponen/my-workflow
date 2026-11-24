@@ -20,7 +20,7 @@ These rules apply to every kind of documentation. Experiment reports in the expe
 2. **Only what exists in this repository.** Document what is here. Do not mention absent features or anything outside this repository, and do not list what the system lacks. Do not describe code by what it deliberately omits, and do not call it simple, minimal, or limited by design (for example "intentionally simple", "deliberately minimal", "does not implement X", "only does X"). State the limits and failure outcomes of documented behavior plainly and exactly, as the code produces them.
 3. **Rationale as a fact about the present design.** A reason is a statement about the system as it is: "Inference runs on the local machine, so the web server holds no model credentials." It is never a story of how the design was reached. Comments and doc comments in code follow the same rule: a reason is allowed when it points to a fact that holds today, and a reason that is a decision made in the past is not allowed (see "No backstory").
 4. **Verified claims only.** State a guarantee only when code or tests enforce it. Write nothing from memory, from another document, or from inference. When a document or comment and the code disagree, the code is correct.
-5. **No stubs and no deferred work.** Do not write "coming soon", "not available yet", empty sections, placeholder text, or `TODO`, `FIXME`, `HACK`, or `XXX` comments. A page that cannot be written yet is not created and not added to the checkout's documentation index. Unfinished work is reported to the user and never left in the files.
+5. **No stubs and no deferred work.** Do not write "coming soon", "not available yet", empty sections, placeholder text, or `TODO`, `FIXME`, `HACK`, or `XXX` comments. A page that cannot be written yet is not created and not added to the workspace's documentation index. Unfinished work is reported to the user and never left in the files.
 6. **No traces of authorship.** Documents and comments never refer to this guide, to agents, to authoring conventions, or to how they were produced. They carry no author names, initials, dates, ticket numbers, or version stamps.
 7. **No sensitive details.** No document or comment contains secrets, credentials, hostnames, network addresses, deployment paths, or worker topology, and none describes a hosted or cloud deployment. Examples use generic values such as `localhost` and `example.org`. Exception: a page in the private set may name the real hosts, remote targets, local environments, deployment paths and configured values, and may describe the private deployment and its hosted parts. It never contains a secret or credential.
 8. **No confidentiality commentary.** Documents and comments never classify data, files, or behavior as private, confidential, internal, or non-confidential, and never refer to private resources. They state what the code reads, writes, and does with its inputs, by name and function. Avoid phrases such as "Non-confidential only", "private configuration bridge", and "never resolves a selected pointer". Write what the code accepts and does, for example "Reads the values listed in `ALLOWED_KEYS` from the environment." A page in the private set names private-only code and the private deployment by name, and the same rule applies to everything else on it. The words public and private that name a product concept, such as the public configuration files or a private issue tracker, are product terms and are allowed.
@@ -56,22 +56,22 @@ Examples:
 ## Terminology and values
 
 - The glossary named in `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md` is the source of truth for terms. Read it before writing. Use each term exactly as defined, in documents and in comments, and use one term for one concept. Never introduce a synonym or an undefined shorthand.
-- The documentation names the product, because it describes the product rather than one deployment. It never uses a deployment instance's name, an organization's product name or an organization's brand colour; the checkout's own naming belongs in `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`. A statement about an organization's data names the organization by its own name.
+- The documentation names the product, because it describes the product rather than one deployment. It never uses a deployment instance's name, an organization's product name or an organization's brand colour; the workspace's own naming belongs in `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`. A statement about an organization's data names the organization by its own name.
 - When a document or comment needs a term the glossary lacks, do not invent one. Report it through the term request the role instructions define, or as a proposed glossary entry in the closing report.
 - State a value when the reader needs it to understand or operate the system. Examples: a model context size, a threshold, a limit, a timeout. Give the value with its unit and name the configuration key that sets it. Do not state a value the reader does not need, such as a default file path that is obvious from context.
 - Inline code formatting is for identifiers, configuration keys, environment variable names, commands, file and folder paths, and literal values. In user pages, interface labels are bold. Do not use bold or italics for emphasis in running prose.
 
 ## Interface wording and translations
 
-The checkout's interface strings, their translations and the file that owns them live in
-`AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`. A checkout with no translated interface strings
+The workspace's interface strings, their translations and the file that owns them live in
+`AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`. A workspace with no translated interface strings
 drops this section.
 
 ## Markdown documents
 
 ### The documentation set
 
-The checkout's documentation set, its parts, and which of them are published live in
+The workspace's documentation set, its parts, and which of them are published live in
 `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`.
 
 ### Page kinds
@@ -112,7 +112,7 @@ mechanism belongs.
 - Every code fence has a language tag: `bash`, `toml`, `python`, `json`, `sql`, `svg`, or `text` for output and anything that is not code. An untagged fence is not highlighted. Show one command per line without a prompt symbol.
 - Callouts use the GitHub alert syntax (`> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`, `> [!CAUTION]`), followed by blockquoted text. Use them where they help the reader, including in guides. `NOTE` gives useful context, `TIP` gives a practical shortcut or technique, `IMPORTANT` identifies a prerequisite or decisive constraint, `WARNING` flags an action with a significant consequence, and `CAUTION` flags a risk requiring particular care. Match the type to the message. Use callouts sparingly, without decorative filler or repeating adjacent prose. There is no fixed per-page count.
 - Write plain Markdown only. No HTML.
-- Never write a modified date, a reading time, a breadcrumb, previous or next links, or a page outline into a page. The published documentation generates them where the checkout publishes one.
+- Never write a modified date, a reading time, a breadcrumb, previous or next links, or a page outline into a page. The published documentation generates them where the workspace publishes one.
 - Subject file names are lowercase ASCII kebab-case, end in `.md`, and name the subject. They carry no numbers for ordering, no dates, and no words such as new, old, final, or v2. Folder overview pages use the exact filename `README.md`. A developer page is named for the mechanism it describes, such as `minimum-route-solver.md` beside `minimum-route.md`.
 
 ### Page composition
@@ -133,7 +133,7 @@ mechanism belongs.
 - Link text names the target. It is never "here", "this page", or the bare path.
 - Verify every link: the target file exists, and a linked heading exists on that page. A wrong link to a Markdown file or folder builds without any error and fails only for the reader. A link to a page another brief is writing in the same round is allowed only when the brief names that path, and every such link is listed in the closing report.
 - Developer pages cite source by repository path and symbol name in inline code: the file that defines a symbol, and the symbol itself. They never cite line numbers. Technical pages describe systems and mostly avoid file paths. User pages cite neither.
-- A link from a published page to a Markdown file the checkout does not index opens that file in the repository. Technical pages use this to reach developer pages.
+- A link from a published page to a Markdown file the workspace does not index opens that file in the repository. Technical pages use this to reach developer pages.
 - Link the first use of a glossary term on a page only when the reader benefits. Do not link repeated uses. There is no fixed glossary-link count. Prefer the page that explains the subject when it provides more useful context.
 
 ### Diagrams
@@ -232,7 +232,7 @@ Every diagram looks like one set drawn by one hand. A diagram created or changed
 
 ### Experiment reports, charts and screenshots
 
-The checkout's experiment report, chart and screenshot rules, and the commands that produce and check
+The workspace's experiment report, chart and screenshot rules, and the commands that produce and check
 them, live in `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`.
 
 ## Code documentation
@@ -319,7 +319,7 @@ This version states the meaning, the valid values, and the effect, and every sen
 1. Read this guide and the glossary.
 2. Read the source and tests for the subject before writing anything. Read the actual files. Never write from memory or from another document.
 3. Confirm each guarantee in code or tests. Where behavior cannot be determined from source and tests, ask the user instead of guessing. Ask when two documents disagree, when a page's kind or location is unclear, or when a decision-critical fact is missing. Batch the questions.
-4. Write the documents and comments. Add the checkout's index entries when it has an index. Link the images.
+4. Write the documents and comments. Add the workspace's index entries when it has an index. Link the images.
 5. Update documents and comments in the same change as the code they describe. Remove any statement that stops being true.
    For a documentation restructure, preserve the leaf content unless a scoped correction requires a change, and update incoming links and index entries for every move.
 6. Run the self-check below.
@@ -348,19 +348,19 @@ Before returning, check every changed file.
 - [ ] Presentation fits the material and page kind. Each image or code snippet serves a distinct explanation, and every referenced screenshot is an actual capture.
 - [ ] Each new SVG uses only the palette, has `<title>` and `<desc>`, is well-formed, and has no text overflow.
 - [ ] Every created or changed diagram has a rendered image that the writer opened and visually inspected and that the orchestrator reviewed, or an explicit rendering blocker. The closing report identifies the final previews and the checks performed.
-- [ ] When the checkout publishes a documentation index, each published page has a valid entry in it. No developer or setup page has one.
-- [ ] Area READMEs contain complete explanations, and the documentation index nests subject pages under their proper parents, within three levels. Inspect the rendered navigation where the checkout publishes it, including expansion and the selected page's ancestors.
+- [ ] When the workspace publishes a documentation index, each published page has a valid entry in it. No developer or setup page has one.
+- [ ] Area READMEs contain complete explanations, and the documentation index nests subject pages under their proper parents, within three levels. Inspect the rendered navigation where the workspace publishes it, including expansion and the selected page's ancestors.
 - [ ] Every moved page has its destination, incoming links, and index path checked.
 - [ ] No file contains secrets, hostnames, addresses, or deployment paths, except a page in the private set, which may name the private host, paths and configured values but never a secret.
 - [ ] No shared page links into the private set, and no page links to `AGENTS.md` or `AGENT-INSTRUCTIONS/`.
-- [ ] Every changed interface string reads naturally in every language the checkout translates, uses the same term for the same concept, fits every value of its placeholders, and keeps its key. Every user page and screenshot that shows a changed default-language value is updated.
+- [ ] Every changed interface string reads naturally in every language the workspace translates, uses the same term for the same concept, fits every value of its placeholders, and keeps its key. Every user page and screenshot that shows a changed default-language value is updated.
 
 ## Closing report
 
 End every task with a short report containing:
 
 - The documents created, changed, or deleted, the source files whose comments changed, and the interface strings whose wording changed.
-- The documentation index entries added or changed, where the checkout has an index.
+- The documentation index entries added or changed, where the workspace has an index.
 - The capture requests: for each screenshot, the file path, the screen or tab, the app state to set up, and what must be visible.
 - The proposed glossary entries.
 - The discrepancies found between existing documents or comments and the code.

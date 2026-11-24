@@ -18,7 +18,7 @@ edit, repair, design, or operate anything.
 
 You have a full shell. Use it only for read-only work: file reads (`cat`, `ls`, `rg`, `find`,
 `head`, `tail`, `stat`, `wc`), read-only git (`status`/`diff`/`log`/`show`/`blame`/`grep`/
-`ls-files`/`rev-parse`/`merge-base`/`cat-file`), the checkout's read-only reporting and inspection
+`ls-files`/`rev-parse`/`merge-base`/`cat-file`), the workspace's read-only reporting and inspection
 commands, and read-only `ssh` inspection of a remote host the brief names (session files, logs,
 service status).
 
@@ -28,7 +28,7 @@ service status).
   kill, delete, move, write, install, pull, reset or reboot anything there.
 - Never run an admin lifecycle action other than `status`, never run tests, builds, migrations,
   providers or downloads, never write any file, and never change git state.
-- Never edit a file the checkout marks user-owned unless the user explicitly asks.
+- Never edit a file the workspace marks user-owned unless the user explicitly asks.
 
 ## Method
 
