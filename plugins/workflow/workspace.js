@@ -61,30 +61,46 @@ export function readSettings(root) {
   return settings
 }
 
+/** Read the workspace's `LOCAL/models.json`, or fail naming the file. */
+function readModels(root) {
+  const file = path.join(root, "AGENT-INSTRUCTIONS", "LOCAL", "models.json")
+  if (!existsSync(file)) throw new Error(`${file} is missing; copy it from setup/local.example/models.json`)
+  try {
+    return { file, models: JSON.parse(readFileSync(file, "utf8")) }
+  } catch (error) {
+    throw new Error(`${file}: ${error.message}`)
+  }
+}
+
+/** Turn one `{ model, variant }` assignment into the service's model reference. */
+function modelRef(file, table, name, entry) {
+  if (!entry) throw new Error(`${file} has no "${table}" model for "${name}"; add one as setup/local.example/models.json shows`)
+  // The agent table also accepts the short string form gen_agents.py accepts.
+  if (typeof entry === "string") entry = { model: entry }
+  // The provider is the first segment; a model id may itself contain slashes.
+  const slash = typeof entry.model === "string" ? entry.model.indexOf("/") : -1
+  if (slash < 1 || slash === entry.model.length - 1) {
+    throw new Error(`${file}: "${table}"."${name}"."model" must be "<provider>/<model>"`)
+  }
+  if (entry.variant !== undefined && (typeof entry.variant !== "string" || !entry.variant.trim())) {
+    throw new Error(`${file}: "${table}"."${name}"."variant" must be a non-empty string when present`)
+  }
+  return { providerID: entry.model.slice(0, slash), id: entry.model.slice(slash + 1), ...(entry.variant ? { variant: entry.variant } : {}) }
+}
+
 /**
  * The model of a session the workflow opens for `role` (`plan`, `release` or `shadow`), from the
  * `sessions` table of the workspace's `LOCAL/models.json`, as the service's model reference.
  */
 export function sessionModel(root, role) {
-  const file = path.join(root, "AGENT-INSTRUCTIONS", "LOCAL", "models.json")
-  if (!existsSync(file)) throw new Error(`${file} is missing; copy it from setup/local.example/models.json`)
-  let models
-  try {
-    models = JSON.parse(readFileSync(file, "utf8"))
-  } catch (error) {
-    throw new Error(`${file}: ${error.message}`)
-  }
-  const entry = models.sessions?.[role]
-  if (!entry) throw new Error(`${file} has no "sessions" model for "${role}"; add one as setup/local.example/models.json shows`)
-  // The provider is the first segment; a model id may itself contain slashes.
-  const slash = typeof entry.model === "string" ? entry.model.indexOf("/") : -1
-  if (slash < 1 || slash === entry.model.length - 1) {
-    throw new Error(`${file}: "sessions"."${role}"."model" must be "<provider>/<model>"`)
-  }
-  if (entry.variant !== undefined && (typeof entry.variant !== "string" || !entry.variant.trim())) {
-    throw new Error(`${file}: "sessions"."${role}"."variant" must be a non-empty string when present`)
-  }
-  return { providerID: entry.model.slice(0, slash), id: entry.model.slice(slash + 1), ...(entry.variant ? { variant: entry.variant } : {}) }
+  const { file, models } = readModels(root)
+  return modelRef(file, "sessions", role, models.sessions?.[role])
+}
+
+/** The model of an agent the plugin starts itself, from the `opencode` table of `models.json`. */
+export function agentModel(root, agent) {
+  const { file, models } = readModels(root)
+  return modelRef(file, "opencode", agent, models.opencode?.[agent])
 }
 
 /** List the plans of a workspace: the folders under `PLANS/`, sorted. */

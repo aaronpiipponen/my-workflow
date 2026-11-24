@@ -44,6 +44,13 @@ write(
   "## Phase A2\n\n**Touched files:**\n<!-- touched-files:start -->\n- `hit.py` - changed: material\n<!-- touched-files:end -->\n",
 )
 write(
+  "AGENT-INSTRUCTIONS/LOCAL/models.json",
+  JSON.stringify({
+    opencode: { coordinator: { model: "prov/coordinator-model", variant: "low" } },
+    sessions: {},
+  }),
+)
+write(
   "AGENT-INSTRUCTIONS/LOCAL/workspace.json",
   JSON.stringify({
     integration: "main",
@@ -209,6 +216,7 @@ rootInstance.dispose()
 await a.commands["coordinator-link"].execute({ sessionID: "orch-a" })
 const coordinator = readLinks(root).coordinator
 check("the first link starts a coordinator in the root", sessions.get(coordinator)?.agent === "coordinator" && sessions.get(coordinator).location.directory === root)
+check("the coordinator starts on its configured model", JSON.stringify(sessions.get(coordinator)?.model) === JSON.stringify({ providerID: "prov", id: "coordinator-model", variant: "low" }))
 check("the terminal UI is told to open it", emitted.at(-1)?.data.sessionID === coordinator)
 const linkedMessage = prompts.at(-1)
 check("the coordinator receives the plan once", linkedMessage.sessionID === coordinator && linkedMessage.text.includes("LINKED plan-a") && linkedMessage.text.includes("| A1 | Work | active | - |"))
@@ -355,6 +363,10 @@ check("the leader gets the partner's reply", reply === "B1 keeps uv on the recor
 check("the leader cannot notify itself", (await a.call("channel_notify", { text: "x" }, "orch-a")).includes("partner of no open channel"))
 const notified = await b.call("channel_notify", { text: "B1r is detailed." }, "orch-b")
 check("the partner notifies the leader without waiting", notified === "Sent to the plan-a orchestrator." && prompts.at(-1).sessionID === "orch-a" && prompts.at(-1).text.includes("CHANNEL NOTE from the plan-b orchestrator") && prompts.at(-1).text.includes("B1r is detailed."))
+const premature = await a.call("channel_close", { message: "Implement phases/B1r-shared-hit-record.md." }, "orch-a")
+check("refuses to close without both resolution phases", premature.includes("resolution phase A3r") && premature.includes("phase-advancer writes both"), premature)
+plan("plan-a", [["A1", "done"], ["A2", "done"], ["A3", "active"], ["A3r", "active"], ["A4", "planned"], ["A5", "not applicable"]])
+plan("plan-b", [["B1", "active"], ["B1r", "active"], ["B2", "planned"]])
 const closed = await a.call("channel_close", { message: "Implement phases/B1r-shared-hit-record.md." }, "orch-a")
 check("closing releases both holds", closed.startsWith("Closed plan-a-A3+plan-b-B1") && readHolds(root).length === 0, closed)
 check("the partner gets its RESOLVED message", prompts.some((prompt) => prompt.sessionID === "orch-b" && prompt.text.startsWith("RESOLVED (pair plan-a-A3+plan-b-B1)")))

@@ -16,7 +16,7 @@ import path from "node:path"
 
 import { assertSubagentAllowed, assistantText, errorText, lastRound, resolveAgent } from "../subagent-foreground/index.js"
 import { branchOf, planOf, rootOf } from "../workflow/index.js"
-import { readSettings } from "../workflow/workspace.js"
+import { agentModel, readSettings } from "../workflow/workspace.js"
 import { planChanges, planSnapshot, reportSummary, unlistedFiles } from "./feed.js"
 import {
   armPair,
@@ -408,7 +408,8 @@ export default {
       let coordinator = await liveCoordinator(root)
       let started = false
       if (!coordinator) {
-        const created = await ctx.session.create({ title: "Coordinator", agent: COORDINATOR_AGENT, location: { directory: root } })
+        const model = agentModel(root, COORDINATOR_AGENT)
+        const created = await ctx.session.create({ title: "Coordinator", agent: COORDINATOR_AGENT, model, location: { directory: root } })
         coordinator = created?.id
         if (!coordinator) throw new Error("the coordinator session was not created")
         started = true
@@ -651,6 +652,19 @@ export default {
             if (!led) throw new Error("you lead no open channel")
             const { pair } = led
             const { partner } = sidesOf(led, plan)
+            // The leader's one advancer writes both resolution phases. Refuse to settle a pair that
+            // only has one of them, so a leader cannot close while waiting on a partner that never
+            // writes its own file.
+            for (const side of led.sides) {
+              const resolution = `${side.phase}r`
+              const status = phaseStatuses(root, side.plan)[resolution]
+              if (status !== "active" && status !== "done") {
+                throw new Error(
+                  `the ${side.plan} resolution phase ${resolution} is ${status ?? "missing"} in its status table; ` +
+                    "the leader's one phase-advancer writes both resolution phases before channel_close",
+                )
+              }
+            }
             const links = readLinks(root)
             releasePair(root, pair)
             const partnerSession = sessionOfPlan(links, partner.plan)
