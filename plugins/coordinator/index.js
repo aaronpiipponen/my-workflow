@@ -394,6 +394,9 @@ export default {
       if (session?.metadata?.workflowRole === "release") {
         throw new Error("this session is the plan's release, not its orchestrator; link the plan orchestrator's session")
       }
+      if (session?.metadata?.shadowOrchestrator) {
+        throw new Error("this session is a shadow orchestrator, not the plan orchestrator; link the plan orchestrator's session")
+      }
       const linked = sessionOfPlan(readLinks(root), plan)
       if (linked && linked !== sessionID) {
         const current = await existing(linked)
