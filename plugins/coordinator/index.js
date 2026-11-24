@@ -205,6 +205,8 @@ export default {
       const directory = session?.location?.directory
       const root = directory && rootOf(directory)
       if (!root) return
+      // A checkout of the workflow repository itself has an instruction tree but is no workspace.
+      if (!existsSync(path.join(root, "AGENT-INSTRUCTIONS", "LOCAL", "workspace.json"))) return
       const locked = readSettings(root).locked_commands ?? {}
       if (!Object.keys(locked).length) return
       const ancestors = []

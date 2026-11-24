@@ -70,6 +70,10 @@ const worktree = (branch) => {
   return directory
 }
 const directories = { "plan-a": worktree("plan-a"), "plan-b": worktree("plan-b"), "plan-c": worktree("plan-c"), main: worktree("main"), root }
+// A checkout of the workflow repository itself: an instruction tree, but no workspace settings.
+const workflowCheckout = mkdtempSync(path.join(tmpdir(), "workflow-checkout-"))
+mkdirSync(path.join(workflowCheckout, "AGENT-INSTRUCTIONS"))
+directories.repo = workflowCheckout
 
 // A controllable event stream that, like OpenCode's, delivers every event to every subscriber.
 const subscribers = []
@@ -394,6 +398,8 @@ check("lists no locks afterwards", (await a.call("lock_list", {}, "orch-a")) ===
 
 // Locked shell commands and the queue.
 const shell = (sessionID, command) => a.start(sessionID, { command }, "shell")
+session("repo-a", "repo")
+check("allows a shell command in a workflow checkout that is no workspace", (await shell("repo-a", "deploy-private-instance")) === null)
 const refuses = (await shell("orch-a", "deploy-private-instance --now")) ?? ""
 check("refuses a locked command while both locks are free", refuses.includes('lock_take "private instance"') && refuses.includes('lock_take "worker"'))
 await a.call("lock_take", { resource: "private instance", reason: "deploy a" }, "orch-a")
