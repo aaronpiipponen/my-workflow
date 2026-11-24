@@ -124,7 +124,7 @@ npm test --prefix plugins/subagent-foreground
 
 `plugins/workflow/test/workflow.test.mjs` builds temporary workspaces and a workflow repository. It covers section selection, the `optional` and `{plan}` rules, the injection snapshot and `/workflow-reload`, the edit guard, the role files, `phase_new`, `/plan-new` and `/shadow-plan`, the session models, an emptied slot, the command routing with its picker, role refusals and hotfix target, and the root commit.
 
-`plugins/coordinator/test/coordinator.test.mjs` builds a real workspace with three plans and their worktrees. It covers linking, the feed and its flags, the implementer refusal and `phase_subagent`, the hold tools, the channel, the locks with their parent rule, locked shell commands and queue transfer, the release of a lock whose holder is gone, the `/orchestrators` actions, a reload in the middle of a round, the compaction refresh, a malformed hold file and a closed plan.
+`plugins/coordinator/test/coordinator.test.mjs` builds a real workspace with three plans and their worktrees. It covers linking and the coordinator model, the feed and its flags, the implementer refusal and `phase_subagent`, the hold tools, the channel with its resolution-file guard, the locks with their parent rule, locked shell commands and queue transfer, the release of a lock whose holder is gone, the `/orchestrators` actions, a reload in the middle of a round, the compaction refresh, a malformed hold file and a closed plan.
 
 `plugins/subagent-foreground/test/foreground.test.mjs` covers the registration, the child creation and wait, the permission check, a denied child, a failed child and continuing an open session.
 

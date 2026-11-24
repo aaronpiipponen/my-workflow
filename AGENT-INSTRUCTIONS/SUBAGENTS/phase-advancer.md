@@ -23,14 +23,16 @@ Caller must name plan, active phase, and one mode:
   user-specific test or `not required`.
 - `DETAIL RESOLUTION`: two parallel plans overlap and their orchestrators agreed on a shared design.
   Caller names both plans, both held phases, the pair id and the shared design file,
-  `PLANS/shared/<pair>.md`, one copy for both plans. Write one resolution
+  `PLANS/shared/<pair>.md`, one copy for both plans. The leader's one call writes one resolution
   phase in each plan, `PLANS/<plan>/phases/<held-id>r-<title>.md`, each covering only what its own
-  branch must change to reach the shared design, at the full detailing bar. In each plan's status
-  table, insert the resolution phase as the `active` row directly before its held phase, set the
-  held phase back to `planned` with its `Phase file` cleared (it is re-detailed after the
-  resolution lands), and keep every other row. The partner plan's code is in its worktree, the
-  sibling folder `../<partner plan>/`; read it there. Run `phase-spec-auditor` on both files, and
-  return `DETAIL READY` naming both files, or the usual `USER DECISION REQUIRED` or `BLOCKED`.
+  branch must change to reach the shared design, at the full detailing bar. The partner writes no
+  phase file. If the caller asks for one plan or one phase only, return `BLOCKED` naming the missing
+  plan instead of writing one. In each plan's status table, insert the resolution phase as the
+  `active` row directly before its held phase, set the held phase back to `planned` with its
+  `Phase file` cleared (it is re-detailed after the resolution lands), and keep every other row. The
+  partner plan's code is in its worktree, the sibling folder `../<partner plan>/`; read it there. Run
+  `phase-spec-auditor` on both files, and return `DETAIL READY` naming both files, or the usual
+  `USER DECISION REQUIRED` or `BLOCKED`.
 
 If input required for selected mode or required user-only evidence is absent, return
 `BLOCKED` with missing item and stop. In review mode, treat comments as leads and receipt

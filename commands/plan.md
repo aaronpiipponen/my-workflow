@@ -230,7 +230,7 @@ link yourself. Once linked:
 
 - *Leading a pair.* A `CHANNEL OPEN` message makes you the leader for one overlap. Settle it with
   the partner orchestrator through `channel_send`, which returns its reply; you speak first and
-  write the resolution, but you decide together. When your overlapping work is already
+  write the shared design, but you decide together. When your overlapping work is already
   implemented you always lead: the shared design starts from your landed code, and your own
   resolution phase covers only what your branch still has to change. Settle implementation details only: anything that
   changes how the product behaves is mine, so ask me and wait. Write the agreed design, short:
@@ -239,16 +239,19 @@ link yourself. Once linked:
   that design with its own code on its own branch: commits never move between plan branches, and
   no plan branch is merged, rebased or cherry-picked onto another. The releases merge both into
   the integration branch and resolve the textual conflicts by the shared design.
-  Then spawn a fresh `phase-advancer`: `DETAIL RESOLUTION: Pair <pair>. Plans <plan> (held phase
-  <id>) and <partner> (held phase <id>). Shared design: PLANS/shared/<pair>.md.` Run your acceptance check
-  on both resolution phase files. When both pass, call `channel_close` with a message naming the
-  partner's resolution phase file, then continue your loop with your own resolution phase.
-- *Partner in a pair.* Answer each `CHANNEL` message from what you know of your plan; a question
-  only I can settle gets `USER DECISION PENDING` in your reply and a question to me. The leader
-  hears from you only in those replies, so when it waits on you (your resolution phase file is
-  ready, or I answered a pending question), tell it with `channel_notify`. Start nothing
-  until `RESOLVED` arrives. Then run your acceptance check on your resolution phase file and
-  continue your loop with it.
+  Then spawn **one** fresh `phase-advancer`: `DETAIL RESOLUTION: Pair <pair>. Plans <plan> (held
+  phase <id>) and <partner> (held phase <id>). Shared design: PLANS/shared/<pair>.md. Write both
+  resolution phases: <plan>/phases/<id>r-... and <partner>/phases/<id>r-....` The partner writes no
+  phase file. Run your acceptance check on both resolution phase files. If either file is missing,
+  send the advancer again; do not wait for the partner and do not call `channel_close`. When both
+  pass, call `channel_close` with a message naming the partner's resolution phase file, then continue
+  your loop with your own resolution phase.
+- *Partner in a pair.* The leader's advancer writes your resolution phase; you never write or detail
+  it yourself. Answer each `CHANNEL` message from what you know of your plan; a question only I can
+  settle gets `USER DECISION PENDING` in your reply and a question to me. The leader hears from you
+  only in those replies, so when I answer a pending question, tell it with `channel_notify`. Start
+  nothing until `RESOLVED` arrives. Then run your acceptance check on the resolution phase file the
+  `RESOLVED` message names and continue your loop with it.
 - After a resolution, the held phase is `planned` again; detail it fresh before its implementer.
 - *Shared resources.* Before using a resource the workspace names in `LOCAL/workspace.json`,
   take it with `lock_take`, and tell children that use it to do the same; release it with

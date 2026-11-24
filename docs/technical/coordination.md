@@ -4,7 +4,7 @@ The coordinator watches the linked plan orchestrators behind the scenes, holds t
 
 ## What the coordinator is
 
-The coordinator is one long-lived session in the workspace root, on its own `coordinator` agent and model. It makes no product or implementation decision, never edits a plan or code, and never talks to an orchestrator except through its tools. Its job is to notice that two plans are about to change the same code and to stop both at a known point, before either branch commits work the other would have to undo at the merge.
+The coordinator is one long-lived session in the workspace root, on its own `coordinator` agent and model; the plugin passes that model explicitly from `LOCAL/models.json` when it creates the session. It makes no product or implementation decision, never edits a plan or code, and never talks to an orchestrator except through its tools. Its job is to notice that two plans are about to change the same code and to stop both at a known point, before either branch commits work the other would have to undo at the merge.
 
 The user works with the plan orchestrators. The coordinator runs beside them, and the user can open its session to read what it noticed or to ask it something, but nothing in the daily loop requires that.
 
@@ -56,13 +56,13 @@ Hold state lives in `.opencode/coordinator/holds.json` and is read on every `pha
 
 ## The channel and the resolution
 
-When both sides have reached their holds, the coordinator opens the pair's channel with `channel_open` and the leader receives `CHANNEL OPEN`. The leader sends messages into the partner's chat with `channel_send` and receives the partner's reply in the same call. The partner can send the leader a note without waiting, with `channel_notify`, for example when its resolution phase is ready or the user answered a question.
+When both sides have reached their holds, the coordinator opens the pair's channel with `channel_open` and the leader receives `CHANNEL OPEN`. The leader sends messages into the partner's chat with `channel_send` and receives the partner's reply in the same call. The partner can send the leader a note without waiting, with `channel_notify`, for example when the user answered a question.
 
 The two orchestrators settle the implementation details together. Anything that changes product behaviour goes to the user, under the plan orchestrator's normal authority rules. The result is one short shared design in `PLANS/shared/<pair>.md`: the target shape of the shared code, which plan changes what, and what each plan may rely on. Both plans and their releases read it.
 
 ![The coordinator arms a hold on one phase of each plan and opens the channel once both orchestrators have stopped. The leader settles the overlap with the partner and writes one shared design, from which the leader has a resolution phase written into each plan. When both pass the leader's check, the leader closes the channel and both holds are released.](/docs/assets/diagrams/hold-pair.svg)
 
-Each plan reaches the design with its own code on its own branch. The leader has a `phase-advancer` write a resolution phase `<held-id>r` in each plan, because two implementers would not write identical code from the same text and each branch lacks the other plan's earlier phases. When both phase files pass the leader's acceptance check, the leader calls `channel_close`, which releases both holds, sends the partner `RESOLVED` and tells the coordinator `PAIR RESOLVED`. The partner runs its own acceptance check on its resolution phase, and both plans continue independently.
+Each plan reaches the design with its own code on its own branch. The leader has one `phase-advancer` write a resolution phase `<held-id>r` in each plan, because two implementers would not write identical code from the same text and each branch lacks the other plan's earlier phases; the partner writes no phase file. If the advancer returns only one, the leader sends it again rather than waiting for the partner. When both phase files pass the leader's acceptance check, the leader calls `channel_close`, which refuses while either plan's status table lacks its `<held-id>r` row, then releases both holds, sends the partner `RESOLVED` and tells the coordinator `PAIR RESOLVED`. The partner runs its own acceptance check on its resolution phase, and both plans continue independently.
 
 A held plan can change. When a held phase leaves the status table or turns `not applicable`, the feed reports `HELD PHASE REMOVED`, and the coordinator has the hold checked again and keeps, moves or releases it. A pair whose channel is open is closed only by its leader.
 
