@@ -13,8 +13,8 @@ commit and the public push, unless the user explicitly says otherwise. No agent 
 the public repository without that word.
 
 `DOCUMENTATION-WORKFLOW.md` owns the everyday documentation rules, the writers' roles in detail, the
-tools, and the example instance and private deployment where the workspace has them. `DOCUMENTATION-STYLE-GUIDE.md` governs every text
-the release writes.
+tools, and the private deployment and the workspace's own capture setup where the workspace has
+them. `DOCUMENTATION-STYLE-GUIDE.md` governs every text the release writes.
 
 ## Inputs
 
@@ -41,15 +41,15 @@ the release writes.
    under the style guide.
 3. **Scope read-only in the public checkout.** Read-only `ops-scout` audits work on disjoint file sets:
    claims against source, style drift, pages made stale by changed code, missing coverage for new
-   behavior, links and anchors, diagrams, screenshots against the example instance, interface wording
-   and translations, product naming under the workspace's naming rule in
+   behavior, links and anchors, diagrams, screenshots against the workspace's capture setup where it
+   has one, interface wording and translations, product naming under the workspace's naming rule in
    `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`, private material
    that reached the export, export completeness and the security checks below. When the interface
    wording file is in the uncommitted set, the wording audit covers the whole file, so every
    translated string reads naturally and uses one term per concept, and it also reports user-visible
    strings that the changed components write directly. The audits also report a new or changed behavior that
    needs a new diagram or screenshot, a diagram or screenshot that no longer matches the code or the
-   the example instance, and an image that no page uses, the root README's screenshots and its
+   workspace's capture setup, and an image that no page uses, the root README's screenshots and its
    architecture diagram included. Verify every finding against exported source before it counts.
 4. **Report the findings.** Give the user the findings, grouped, with a recommendation for everything
    the user owns. Documentation, presentation, export and security findings are fixed in step 5.
@@ -60,15 +60,14 @@ the release writes.
    workspace's documentation and the translated values in the interface wording file; code-comment
    drift goes to `comment-writer`; the orchestrator makes small edits itself and fixes the exporter's
    file selection. A product fix runs only when the user says so (see "Roles").
-   Every screenshot has one capture script named after it in the capture scripts directory, or in the
-   private one for a private page, and the script is what retakes it. The root README's screenshots
-   and diagrams follow the same rule. A new
-   screenshot adds its script in the same change. A recapture that changes the state or the framing
-   rewrites the script to match the image it produces. A defect in how the published documentation
+   Capture and retake screenshots and diagrams as `AGENT-INSTRUCTIONS/LOCAL/docs-tools.md`
+   describes: that guide owns the capture setup, the scripts and the command, and a recapture that
+   changes the state or the framing follows its rule. A defect in how the published documentation
    presents correct content is fixed at its root in the renderer's code (see "Renderer code in the
    review").
-6. **Export again and verify in the public checkout.** Export, bring the example instance up to the
-   reviewed commit where the workspace has one, and refresh the private deployment where it has one.
+6. **Export again and verify in the public checkout.** Export, bring the workspace's capture setup up
+   to the reviewed commit where the workspace has one, and refresh the private deployment where it
+   has one.
    Run the checker over every changed page, the exporter's link
    and privacy check, the documentation build, the page and navigation checks where the workspace has them,
    and every image, and look at
@@ -78,8 +77,8 @@ the release writes.
    `git diff --check HEAD` in the public checkout. A private fix made after the final export reaches
    the public checkout only through another export. After a renderer code change, also run the web checks and look at
    the affected pages in the rebuilt documentation at desktop and narrow widths. After a wording change, run
-   the web checks and look at the changed strings in the example instance in every language the
-   workspace translates, where a string is long or its layout is tight. Repeat steps 3 to 6 until the range is clean and every
+   the web checks and look at the changed strings in the workspace's capture setup in every language
+   the workspace translates, where a string is long or its layout is tight. Repeat steps 3 to 6 until the range is clean and every
    `docs-pass.md` item is resolved or reported. See "Audit rounds" for which kind of round each
    repeat is.
 7. **Private push, merge and closure.** Push the plan's branch. When a plan is open and the user
@@ -111,8 +110,8 @@ the release writes.
 A workspace with anything to see runs one visual pass over every visual the release changed or found
 stale: the root README's screenshots and its architecture diagram, the documentation's screenshots
 and diagrams, the rendered pages and the interface. Capture or render each at the size a reader sees
-it, open it, inspect it, and fix it at its source, which is the capture script or the diagram's SVG.
-A new screenshot adds its capture script in the same change. The pass is part of step 6, and the
+it, open it, inspect it, and fix it at its source, as `AGENT-INSTRUCTIONS/LOCAL/docs-tools.md`
+describes: that guide owns the capture setup, the scripts and the command. The pass is part of step 6, and the
 closing report names every preview and the checks. A workspace with nothing to see says so and skips
 the pass.
 
@@ -242,8 +241,8 @@ or scout that finds a renderer defect reports it. A workspace without a renderer
 - Shared pages never link into the private set.
 - The private selection matches the public one. A page in the private set is read in the repository
   and is never published.
-- Screenshots and the published-page checks use the example instance, never the public copy and never the
-  private deployment, which serves real data.
+- Screenshots and the published-page checks use the workspace's capture setup where it has one,
+  never the public copy and never the private deployment, which serves real data.
 - Do not re-audit all committed docs. Scope each full round to the whole uncommitted set, the
   `docs-pass.md` list and the whole-checkout security checks.
 - A release keeps no working ledger and no persistent review record. The plan's `docs-pass.md` list

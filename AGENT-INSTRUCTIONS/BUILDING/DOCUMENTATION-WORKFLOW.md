@@ -7,7 +7,7 @@ Paths this file names by role are named for the workspace in `AGENT-INSTRUCTIONS
 documentation set, its private part and the user-owned file are in `documentation-pages.md`; the
 interface wording file, the screenshots, and the experiment-report, chart and diagram directories
 are in `documentation-pages.md`; the experiment directory is in `repo-rules-domain.md`; the
-checker, chart generator, capture scripts and example instance are in `docs-tools.md`.
+checker, chart generator and the workspace's own capture setup are in `docs-tools.md`.
 
 ## Where documentation lives
 
@@ -65,10 +65,11 @@ roles below apply there.
 
 - **`document-writer`.** Background writing agents, a few at a time on disjoint file scopes, one
   writer for a narrow task. A writer edits the workspace's documentation, the translated values in
-  the interface wording file, and the capture script of a screenshot it retakes under the capture
-  scripts, and no other file. One writer at a time owns the wording file. A writer captures each
-  screenshot named in its brief from the example instance into the screenshots directory, or into
-  the private one on a private page, in the same state and framing when recapturing. Resume an
+  the interface wording file, and the screenshot capture material of an image it retakes as
+  `docs-tools.md` names it, and no other file. One writer at a time owns the wording file. A writer captures each
+  screenshot named in its brief with the workspace's capture setup into the screenshots directory,
+  or into the private one on a private page, in the same state and framing when recapturing; the
+  commands and the setup are the workspace's, as `docs-tools.md` describes. Resume an
   interrupted or unfinished writer in its exact session to continue its authorized task, without
   additional user approval. A `TERM REQUEST` continues in that same session with the chosen term.
   Resuming a fully finished writer requires explicit user approval; otherwise give a follow-up fix
@@ -116,8 +117,8 @@ style guide's "Experiment reports" and "Charts" sections govern the text and the
    chart and diagram and look at the image, and read every page for the style guide's report rules
    and for any reference to the sources.
 6. **Register and commit.** The orchestrator adds the pages to the workspace's documentation index
-   when it has one, runs the workspace's documentation checks against the example instance, and
-   commits on the working branch.
+   when it has one, runs the workspace's documentation checks, including its capture setup where it
+   has one, and commits on the working branch.
 
 The orchestrator spawns only `report-writer` and read-only `ops-scout` for this work, in the
 background. Report pages reach the public repository through the export and the release of Rule 2,
@@ -127,5 +128,5 @@ like every other shared page.
 
 The workspace's documentation tools and their exact invocations live in
 `AGENT-INSTRUCTIONS/LOCAL/docs-tools.md`: the Markdown and diagram checker, chart generation,
-screenshot capture, any published-page checks and the example instance. Run the commands from that file; do
-not invent an invocation, and do not substitute a weaker check.
+screenshot capture, any published-page checks and the workspace's own capture setup. Run the commands
+from that file; do not invent an invocation, and do not substitute a weaker check.

@@ -24,7 +24,7 @@ everything deeper.
   addresses of its published pages.
 - `AGENT-INSTRUCTIONS/LOCAL/publish.md` for the public repository's address and its badges.
 - The brand assets the workspace names for the logo.
-- The workspace's screenshot capture scripts for every screenshot, and its diagrams directory for
+- The workspace's screenshot capture material for every screenshot, and its diagrams directory for
   every diagram. The README uses only captured screenshots and hand-written diagrams, as every
   other documentation page does.
 

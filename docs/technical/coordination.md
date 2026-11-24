@@ -73,11 +73,11 @@ A workspace names its shared resources, such as a deployed instance, a worker ma
 ```json
 {
   "integration": "main",
-  "resources": ["private site"],
+  "resources": ["shared deployment"],
   "locked_commands": {
-    "private site": {
-      "comment_free": "This lock governs the private site. It is free but not held by you. Take it with lock_take \"private site\" \"<reason>\", then run the command again.",
-      "comment_held": "This lock governs the private site. Another session holds it. Queue with lock_request \"private site\" \"<reason>\".",
+    "shared deployment": {
+      "comment_free": "This lock governs the shared deployment. It is free but not held by you. Take it with lock_take \"shared deployment\" \"<reason>\", then run the command again.",
+      "comment_held": "This lock governs the shared deployment. Another session holds it. Queue with lock_request \"shared deployment\" \"<reason>\".",
       "shell": ["docker\\s+compose\\b.*\\b(up|build|restart)\\b"]
     }
   }
