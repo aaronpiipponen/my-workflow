@@ -97,9 +97,9 @@ the release writes.
    the integration worktree, fix a failure there only on the user's word, and push only on green.
    Releases run one at a time. The push of the integration branch runs the private CI and its
    deploy job, where the workspace has them. Where the private deployment is deployed by hand
-   instead, deploy it from the integration worktree after the push, as
-   `AGENT-INSTRUCTIONS/LOCAL/deploy.md` describes, taking the resource lock it names first, so the
-   private deployment serves the released state.
+   instead, deploy it after the push as `AGENT-INSTRUCTIONS/LOCAL/deploy.md` describes, taking the
+   resource lock it names first, so the private deployment serves the released state. The deploy
+   guide is the only place that names where the private deployment runs.
 8. **Public fixes and deployment.** Make the public-only changes the release needs, then deploy the
    public instance by hand from the public checkout's uncommitted state and prove it serves (see
    "Public fixes and deployment"). The user checks the deployed public copy.

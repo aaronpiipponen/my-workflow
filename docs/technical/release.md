@@ -32,7 +32,7 @@ The sync and the final merge resolve conflicts by the shared designs whose pair 
 
 ## Closing the plan
 
-After the merge passes its gates, the release closes the plan and moves its folder to `PLANS/archive/<plan>/`. Where the workspace deploys its private instance by hand rather than from a CI job, the release deploys it from the integration worktree after the push, as `LOCAL/deploy.md` describes, taking the lock it names first. The archived plan records stay as they were written. The coordinator drops the plan at its worktree's next round end, or when the plugin loads there and finds the plan gone.
+After the merge passes its gates, the release closes the plan and moves its folder to `PLANS/archive/<plan>/`. Where the workspace deploys its private instance by hand rather than from a CI job, the release deploys it after the push as `LOCAL/deploy.md` describes, taking the lock it names first; that guide is the only place that names where the deployment runs. The archived plan records stay as they were written. The coordinator drops the plan at its worktree's next round end, or when the plugin loads there and finds the plan gone.
 
 ## The public boundary
 
