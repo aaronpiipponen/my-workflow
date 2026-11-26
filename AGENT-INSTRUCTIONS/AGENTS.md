@@ -72,8 +72,8 @@ list. The workflow plugin delivers them:
   command's text does not start its role; run the command.
 - **Skills, on demand.** Procedures that only some work needs are skills whose content is the shared
   text itself: debugging, documentation style, documentation workflow, the root README guide, the
-  logo, plan authoring, phase detailing, phase remediation and `agent-instructions`. Load the matching skill when the work
-  starts.
+  logo, UI building, plan authoring, phase detailing, phase remediation, the shadow orchestrator and
+  `agent-instructions`. Load the matching skill when the work starts.
 - **Held edits.** An edit under `AGENT-INSTRUCTIONS/` outside `PLANS/`, or to `AGENTS.md`, is held
   until the session has loaded the `agent-instructions` skill, which says which rule belongs in the
   shared text and which in the workspace's `LOCAL/`.

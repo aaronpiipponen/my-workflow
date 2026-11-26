@@ -1,6 +1,7 @@
 {
-  "_comment": "Workspace settings the coordinator plugin and the release read. `integration` is the branch every plan branches from and the release merges into. `resources` names the shared machines and services that parallel plans must take one at a time through lock_take, for example a deployed instance or a worker machine. `locked_commands` maps one of those resources to the shell patterns it guards and the two comments the hook gives an agent: `comment_free` when the lock is free, `comment_held` when another session holds it. A matching shell command is refused until the session or an ancestor holds the lock.",
+  "_comment": "Workspace settings the coordinator plugin, the release and the agent generator read. `integration` is the branch every plan branches from and the release merges into. `protected_worktrees` names worktrees beside the plan worktrees (for example a deployed site checkout and the integration worktree) whose files no writing role may edit. `resources` names the shared machines and services that parallel plans must take one at a time through lock_take, for example a deployed instance or a worker machine. `locked_commands` maps one of those resources to the shell patterns it guards and the two comments the hook gives an agent: `comment_free` when the lock is free, `comment_held` when another session holds it. A matching shell command is refused until the session or an ancestor holds the lock.",
   "integration": "main",
+  "protected_worktrees": ["site", "main"],
   "resources": [],
   "locked_commands": {}
 }

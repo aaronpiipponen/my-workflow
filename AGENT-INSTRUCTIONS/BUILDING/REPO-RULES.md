@@ -44,13 +44,14 @@ experiment phases with the `experiment` gate level. When the kind is unclear, as
      decision relies on.
   4. No secrets printed, committed, logged, or transferred.
   5. Outputs a later decision depends on stay saved and unchanged.
-- Results and decisions go into a dated note in the plan folder's `benchmarks/` directory (for
-  example `benchmarks/benchmarks-<date>.md`). Permanent docs record only the accepted decision.
+- Results and decisions go into a dated note in the plan folder's `findings/` directory (for
+  example `findings/<name>-<date>.md`). Permanent docs record only the accepted decision.
 - An accepted result reaches the product through a product phase that rebuilds only the needed
   mechanic cleanly on existing seams. Never promote experiment code as-is, and never gold-plate
   an experiment in anticipation of promotion. When its scoped cleanup gate arrives, finished or
-  no-longer-useful experiment code, with its temporary tests, moves to
-  the experiment archive the same file names; do not preempt a plan's scheduled transition. Files are archived
+  no-longer-useful experiment code, with its temporary tests, moves, under the same file names, to
+  the experiment archive named in `AGENT-INSTRUCTIONS/LOCAL/repo-rules-domain.md`; do not preempt a
+  plan's scheduled transition. Files are archived
   exactly as they are at that moment: never edited, fixed, documented further or run afterwards.
   The archive's only documentation is its root `README.md`. Product and active experiment code
   never import or run anything inside the archive.

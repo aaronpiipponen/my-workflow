@@ -128,8 +128,7 @@ code. New review tasks start fresh. Resume an interrupted or
 unfinished reviewer in its exact session to continue its authorized task without additional user
 approval. Resuming a fully finished reviewer requires explicit user approval; otherwise use a fresh
 session for follow-up work. Preserve user stop instructions and unresolved decision gates.
-Tell reviewers to use shell `cat`, never Read, for llm-tether files when permitted. If `cat` is
-denied, report the limitation rather than trying Read. Never ask the reviewer to write.
+Never ask the reviewer to write.
 
 ## Testing boundary
 

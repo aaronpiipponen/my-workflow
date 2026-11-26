@@ -115,7 +115,7 @@ budget. Policy choices stay with the user.
 Required gate:
 
 - the experiment gate in `VERIFICATION-COMMITS-DEPLOY.md` §1 (run record, binding rules held);
-- a dated result note in the plan folder's `benchmarks/` that answers the question;
+- a dated result note in the plan folder's `findings/` that answers the question;
 - the fast phase gate for any product code the phase changes;
 - committed, tested head before handoff.
 
@@ -345,7 +345,7 @@ claim tooling proves subjective appearance or interaction feel.
 
 ## 8a. Rules to include in detailed phases
 
-Copy into `Rules / MUST NOT` only the REPO-RULES §0/§2 items this phase can plausibly break,
+Copy into `Rules / MUST NOT` only the REPO-RULES §0 and domain rules' §2 items this phase can plausibly break,
 made specific to its files. Do not restate the lists.
 
 ---

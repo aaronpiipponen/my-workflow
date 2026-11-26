@@ -59,6 +59,9 @@ Examples:
 - The documentation names the product, because it describes the product rather than one deployment. It never uses a deployment instance's name, an organization's product name or an organization's brand colour; the workspace's own naming belongs in `AGENT-INSTRUCTIONS/LOCAL/documentation-pages.md`. A statement about an organization's data names the organization by its own name.
 - When a document or comment needs a term the glossary lacks, do not invent one. Report it through the term request the role instructions define, or as a proposed glossary entry in the closing report.
 - State a value when the reader needs it to understand or operate the system. Examples: a model context size, a threshold, a limit, a timeout. Give the value with its unit and name the configuration key that sets it. Do not state a value the reader does not need, such as a default file path that is obvious from context.
+- Write in American English. Use one spelling per word ("license", "color", "center", "behavior",
+  "organize"), never the British form beside it, and keep the workspace's glossary entries in the
+  same spelling.
 - Inline code formatting is for identifiers, configuration keys, environment variable names, commands, file and folder paths, and literal values. In user pages, interface labels are bold. Do not use bold or italics for emphasis in running prose.
 
 ## Interface wording and translations

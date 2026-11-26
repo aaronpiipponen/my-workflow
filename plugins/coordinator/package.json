@@ -1,6 +1,6 @@
 {
   "name": "opencode-coordinator",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Coordinate parallel plan orchestrators: link command, feed, holds, channel and resource locks",
   "type": "module",
   "main": "index.js",

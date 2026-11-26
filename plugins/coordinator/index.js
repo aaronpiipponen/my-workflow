@@ -16,7 +16,7 @@ import path from "node:path"
 
 import { assertSubagentAllowed, assistantText, errorText, lastRound, resolveAgent } from "../subagent-foreground/index.js"
 import { branchOf, planOf, rootOf } from "../workflow/index.js"
-import { agentModel, readSettings } from "../workflow/workspace.js"
+import { coordinatorModel, readSettings } from "../workflow/workspace.js"
 import { planChanges, planSnapshot, reportSummary, unlistedFiles } from "./feed.js"
 import {
   armPair,
@@ -408,7 +408,7 @@ export default {
       let coordinator = await liveCoordinator(root)
       let started = false
       if (!coordinator) {
-        const model = agentModel(root, COORDINATOR_AGENT)
+        const model = coordinatorModel(root)
         const created = await ctx.session.create({ title: "Coordinator", agent: COORDINATOR_AGENT, model, location: { directory: root } })
         coordinator = created?.id
         if (!coordinator) throw new Error("the coordinator session was not created")

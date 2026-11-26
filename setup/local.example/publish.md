@@ -6,7 +6,7 @@ release reads its uncommitted changes after the export and never edits it direct
 ## The public repository
 
 <The public repository's address, and the badges the root README shows: continuous integration,
-licence and version, each with its image address and the page it links to. Delete this section
+license and version, each with its image address and the page it links to. Delete this section
 when the workspace publishes nothing.>
 
 ## Publication boundary

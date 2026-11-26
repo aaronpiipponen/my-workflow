@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source for model assignment. 'opencode' holds each agent's model: fill every role before running AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py, which stamps each canonical body into .opencode/agents/. 'sessions' holds the model of each session the workflow plugin opens: the /plan and /release orchestrators started from the workspace root or the integration worktree, and the /shadow-plan working session; a command typed in a plan's worktree runs in that chat on its own model. Use '<provider>/<model>' and an optional variant name; delete variant when the model has none.",
+  "_comment": "Single source for model assignment, in two tables. 'sessions' holds every session the tooling opens on a named model: the /plan and /release orchestrators it starts in a new session, the /shadow-plan working session, and the coordinator, which is a primary-mode agent persona only because it must carry its own deny-write permissions. A command typed inside a plan's worktree runs in that chat on its own model and reads no entry here. 'agents' holds the model of every stamped subagent in .opencode/agents/, which AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py writes from the canonical bodies. Use '<provider>/<model>' and an optional variant name; delete variant when the model has none.",
   "sessions": {
     "plan": {
       "model": "<provider>/<model>",
@@ -12,9 +12,13 @@
     "shadow": {
       "model": "<provider>/<model>",
       "variant": "<variant>"
+    },
+    "coordinator": {
+      "model": "<provider>/<model>",
+      "variant": "<variant>"
     }
   },
-  "opencode": {
+  "agents": {
     "seam-scout": {
       "model": "<provider>/<model>",
       "variant": "<variant>"
@@ -52,10 +56,6 @@
       "variant": "<variant>"
     },
     "report-writer": {
-      "model": "<provider>/<model>",
-      "variant": "<variant>"
-    },
-    "coordinator": {
       "model": "<provider>/<model>",
       "variant": "<variant>"
     },

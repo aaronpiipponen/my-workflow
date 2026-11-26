@@ -90,17 +90,17 @@ function modelRef(file, table, name, entry) {
 
 /**
  * The model of a session the workflow opens for `role` (`plan`, `release` or `shadow`), from the
- * `sessions` table of the workspace's `LOCAL/models.json`, as the service's model reference.
+ * `sessions` table of the workspace's `LOCAL/models.json`, as the service's model reference. These
+ * roles have no stamped agent persona; their procedure is the command text.
  */
 export function sessionModel(root, role) {
   const { file, models } = readModels(root)
   return modelRef(file, "sessions", role, models.sessions?.[role])
 }
 
-/** The model of an agent the plugin starts itself, from the `opencode` table of `models.json`. */
-export function agentModel(root, agent) {
-  const { file, models } = readModels(root)
-  return modelRef(file, "opencode", agent, models.opencode?.[agent])
+/** The model of a session the coordinator plugin starts: one `sessions` entry, like the orchestrators'. */
+export function coordinatorModel(root) {
+  return sessionModel(root, "coordinator")
 }
 
 /** List the plans of a workspace: the folders under `PLANS/`, sorted. */

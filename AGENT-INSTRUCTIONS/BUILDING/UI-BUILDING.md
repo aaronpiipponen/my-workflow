@@ -20,6 +20,10 @@ at every supported width, the first time and every time. Rendering without error
   document; "it was quicker" is not one.
 - A known interface defect listed by the workspace is never a reference element. Do not copy a
   defective element's behaviour, and do not cite it as precedent.
+- An element enters the workspace's reference list only after the user has accepted it in a UI
+  check. A phase proposes a new reference element in its closing report and never adds one to the
+  list itself. An element the user has not accepted yet sits in the list's "Pending acceptance"
+  section and is not a reference.
 
 ## 2. Motion parity
 

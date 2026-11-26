@@ -18,6 +18,11 @@ Caller must name plan, active phase, and one mode:
 - `DETAIL ACTIVE`: caller says whether this is initial detail or re-detailing after an
   implementer blocker and includes exact blocker when one exists. No implementation SHA,
   verification receipt, comments, or user-test result exists or is required.
+  `DETAIL ACTIVE (shadow-built)` is the variant for an S1 phase the shadow orchestrator kept: load
+  the `shadow` skill, then audit the existing `phases/S1` file against the detail bar and the diff
+  from its first checkpoint to `HEAD`, fill its gaps and run `phase-spec-auditor`. Never drop an
+  accepted item, never rewrite the file from `full-plan.md`, and keep "no behavior change" as its
+  first MUST-NOT.
 - `REVIEW AND ADVANCE`: caller provides implementer's `<base>..<head>` commit range and compact verification
   receipt, relevant implementer comments or `NONE`, and result of any required
   user-specific test or `not required`.
@@ -167,7 +172,9 @@ In `REVIEW AND ADVANCE` mode:
   builds on (a style/CSS defect, a missing doc ripple, a small wiring or wording fix), do NOT create a
   remediation unit (user rule: a separate fix unit costs a full workflow cycle). Complete the phase,
   record each finding as an explicit carry-over in `done/<id>.md`, and detail the next phase to fix them
-  alongside its own work, with no extra tests for them (`PLANNING/PLAN-PHASE-REMEDIATION.md`).
+  alongside its own work, with no extra tests for them (`PLANNING/PLAN-PHASE-REMEDIATION.md`). A
+  carry-over is a concrete TODO in the next phase file, never a condition such as "the next time this
+  code changes". A documentation item that waits for the release goes to `docs-pass.md` instead.
 - If substantially incorrect, preserve sound work and rewrite active phase as implementation-grade
   remediation in same phase id. Do not patch substantive implementation. You may directly
   fix only a tiny discrepancy such as one stale document or two one-line corrections,
@@ -241,7 +248,6 @@ so every prompt must contain, explicitly:
 State plainly that bounded reviewers must not survey the repo, re-derive prior research,
 iterate, or run tests or builds such as `uv`, `pytest` or `ruff` (they cannot), and that they
 should say what is missing rather than expand scope.
-Remind delegates to use shell `cat`, never Read, for llm-tether files when `cat` is permitted.
 If it is not, use tracked benchmark evidence or report the missing access instead of trying Read.
 
 ### Boundaries
@@ -260,7 +266,7 @@ If it is not, use tracked benchmark evidence or report the missing access instea
 Return concise structured result:
 
 ```text
-MODE: DETAIL ACTIVE | REVIEW AND ADVANCE | DETAIL RESOLUTION
+MODE: DETAIL ACTIVE | DETAIL ACTIVE (shadow-built) | REVIEW AND ADVANCE | DETAIL RESOLUTION
 PHASE VERDICT: DETAIL READY | COMPLETE | REMEDIATION READY | USER DECISION REQUIRED | BLOCKED
 FINISHED PHASE: <id and current status/path, or NONE for pre-implementation detail>
 NEXT UNIT: <next phase/remediation id and detailed path, or NONE>

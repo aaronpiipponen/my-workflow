@@ -14,7 +14,7 @@ PLANS/<slug>/         # <slug> is the plan's branch and worktree name; never `sh
   docs-pass.md        # items explicitly deferred to the release, kept until the release clears them
   phases/<id>.md      # one detailed, implementation-grade phase — created only when that phase is active
   done/<id>.md        # a completed phase compressed to its frozen contract
-  benchmarks/<name>-<YYYY-MM-DD>.md  # dated experiment/result/run notes (immutable records)
+  findings/<name>-<YYYY-MM-DD>.md  # dated findings: experiment, run, survey and scout notes
 ```
 
 - `/plan-new` creates the plan folder with its starting `full-plan.md`, `scope.md` and
@@ -36,11 +36,12 @@ PLANS/<slug>/         # <slug> is the plan's branch and worktree name; never `sh
   `../PLANNING/PLAN-PHASE-REMEDIATION.md` (keep working parts, fix steps at full grade); the row
   stays `active` until the retest passes.
 
-- Dated experiment results, benchmark/run records and acceptance-run notes go in
-  `benchmarks/`, never the plan root or `phases/`. They are frozen evidence: cite them from
-  `full-plan.md` as `benchmarks/<note>.md` and from `done/` as `../benchmarks/<note>.md`.
-  Plan-scope working documents that are not run records (for example a scope/review note
-  for a split phase) stay at the plan root.
+- Dated experiment results, benchmark and run records, acceptance-run notes, survey notes and scout
+  findings with file:line evidence go in `findings/`, never the plan root or `phases/`. They are
+  frozen evidence: cite them from `full-plan.md` as `findings/<note>.md` and from `done/` as
+  `../findings/<note>.md`. Plan-scope working documents that are not dated records (for example a
+  scope/review note for a split phase) stay at the plan root. An archived plan keeps the
+  `benchmarks/` folder it was written with.
 
 - Every plan runs the same lifecycle: detail and implement phases until every phase, the closing
   survey included, is done; then the release (`../BUILDING/RELEASE-WORKFLOW.md`, the `/release` command), which ends with

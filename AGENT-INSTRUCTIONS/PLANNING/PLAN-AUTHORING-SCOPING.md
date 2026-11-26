@@ -242,7 +242,7 @@ Boundary rules:
   evade the test cap (`REPO-RULES.md` §3a).
 - **Closing survey phase (binding).** Every plan's last phase includes a full read-only survey of all
   areas the plan added or changed, using the previous plan surveys as the base for method and finding
-  classes and following the survey method below. The result is a dated note in the plan's `benchmarks/`. It looks for unnecessary complexity,
+  classes and following the survey method below. The result is a dated note in the plan's `findings/`. It looks for unnecessary complexity,
   duplication, dead code, redundant checks/records, test bloat, stale docs and drift from the user's
   decisions. Findings go to the user and are not fixed inside that phase. The plan is not closed or
   archived until the user accepts the survey results. A shadow plan, created with `/shadow-plan`, is
@@ -477,7 +477,7 @@ Every scoped plan should restate the relevant hard rules in the plan itself, plu
 subsystem rules. Do not make implementers chase another document for the rules that
 decide whether a phase is safe.
 
-Name in each scoped product phase's `Must not` the REPO-RULES §0/§2 items it can plausibly
+Name in each scoped product phase's `Must not` the REPO-RULES §0 and domain rules' §2 items it can plausibly
 break; do not copy the lists. Experiment phases name only the REPO-RULES §0a binding rules.
 
 ---

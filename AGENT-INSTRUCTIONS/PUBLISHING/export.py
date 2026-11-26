@@ -26,8 +26,13 @@ tracked repository file, such as a committed example or a deployment file.
 It deliberately does nothing else: no package/settings/product import, no dependency, no state or
 ownership journal, no seeding or first-run mode, no log/receipt/history, no install/build/test or
 configuration validation, no service/database/runtime operation and no Git write. The target root
-and every protected tree are never recursively removed. A missing listed source is ordinary
-absence and is skipped; any other I/O failure stops the run.
+and every protected tree are never recursively removed. A missing listed source is printed as a loud
+warning naming every missing file, because an empty selection would otherwise clean the whole target
+and look like a success; any other I/O failure stops the run.
+
+The root must be a project checkout. The exporter refuses a workspace root, where the instruction
+tree is a link to the workflow and no selected source exists, because exporting from there would
+clean the public checkout and copy almost nothing.
 """
 
 from __future__ import annotations
@@ -35,6 +40,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
@@ -73,6 +79,8 @@ _DATA, _PRIVATE_ROOT = _load_data()
 
 FILE_MAP = _DATA.FILE_MAP
 PROTECTED_COPIES = _DATA.PROTECTED_COPIES
+PUBLIC_ROOTS = _DATA.PUBLIC_ROOTS
+PRIVATE_EXCLUSIONS = _DATA.PRIVATE_EXCLUSIONS
 PRUNE_DIR_NAMES = _DATA.PRUNE_DIR_NAMES
 PUBLIC_ONLY = _DATA.PUBLIC_ONLY
 SHARED_DOCS_EXCLUDED = _DATA.SHARED_DOCS_EXCLUDED
@@ -520,6 +528,22 @@ def _prepare_parents(target: Path, destination_relative: PurePosixPath) -> None:
             raise SystemExit(f"destination parent is not a directory: {current}")
 
 
+def _require_project_checkout(private_root: Path) -> None:
+    """Refuse a root that is not a project checkout, such as the workspace root.
+
+    The workspace root holds ``project.git`` beside the plan worktrees and links the instruction
+    tree, so it has no selected source of its own; exporting from there would clean the target and
+    copy almost nothing.
+    """
+    if not (private_root / ".git").exists():
+        raise SystemExit(f"{private_root}: not a Git checkout; run the exporter from the plan's worktree")
+    if (private_root / "project.git").exists():
+        raise SystemExit(
+            f"{private_root}: this is the workspace root, not a project checkout; "
+            "run the exporter from the plan's worktree"
+        )
+
+
 def _copy_sources(
     private_root: Path,
     target: Path,
@@ -530,7 +554,8 @@ def _copy_sources(
     """Copy every existing selected source to its destination, preserving file modes.
 
     An ordinary selection refuses a protected destination. A ``protected`` selection requires one,
-    so an explicit protected copy cannot land in the ordinary exported tree.
+    so an explicit protected copy cannot land in the ordinary exported tree. A source that is
+    missing or a symlink is collected and reported once by :func:`_warn_missing`.
     """
     copied = 0
     for source_relative, destination_text in selection:
@@ -552,16 +577,71 @@ def _copy_sources(
     return copied
 
 
+def _uncovered_files(private_root: Path) -> list[str]:
+    """Return every tracked file under a public root that the selection neither takes nor excludes.
+
+    A new product file that nobody added to ``FILE_MAP`` would otherwise be left out of the public
+    tree silently, and the public checkout would not build.
+    """
+    result = subprocess.run(
+        ["git", "-C", str(private_root), "ls-files"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    selected = {source for source, _destination in FILE_MAP}
+    uncovered = []
+    for relative in result.stdout.splitlines():
+        if not relative.startswith(PUBLIC_ROOTS):
+            continue
+        if relative in selected or relative.startswith(PRIVATE_EXCLUSIONS):
+            continue
+        uncovered.append(relative)
+    return uncovered
+
+
+def _missing_sources(private_root: Path, selection: tuple[tuple[str, str], ...]) -> list[str]:
+    """The selected sources this root does not have as a regular file."""
+    missing = []
+    for source_relative, _destination in selection:
+        source = private_root / source_relative
+        if source.is_symlink() or not source.is_file():
+            missing.append(source_relative)
+    return missing
+
+
+def _warn_missing(private_root: Path, selection: tuple[tuple[str, str], ...]) -> None:
+    """Print every missing selected source as one loud warning; it does not fail the run."""
+    missing = _missing_sources(private_root, selection)
+    if not missing:
+        return
+    print(
+        f"export: WARNING {len(missing)} selected source(s) are missing from {private_root}; "
+        "the target will not receive them:",
+        file=sys.stderr,
+    )
+    for source_relative in missing:
+        print(f"export: WARNING missing {source_relative}", file=sys.stderr)
+
+
 def main() -> int:
     """Replace the fixed public target from the selected private sources and report the count."""
     private_root = _PRIVATE_ROOT
+    _require_project_checkout(private_root)
     # A rehearsal runs against a scratch target without editing the selection.
     target = Path(os.environ.get("EXPORT_TARGET", TARGET_ROOT))
     _validate_target(private_root, target)
+    uncovered = _uncovered_files(private_root)
+    if uncovered:
+        raise SystemExit(
+            "export: these tracked files under a public root are neither selected nor excluded: "
+            + ", ".join(uncovered)
+        )
     selection = _source_selection(private_root)
     _secret_check(private_root, selection + PROTECTED_COPIES)
     _check_doc_links(private_root, selection)
     _reject_leaked_target(target)
+    _warn_missing(private_root, selection + PROTECTED_COPIES)
     target.mkdir(parents=True, exist_ok=True)
     _clean_target(target)
     copied = _copy_sources(private_root, target, selection)

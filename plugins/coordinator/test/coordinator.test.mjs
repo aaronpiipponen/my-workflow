@@ -46,8 +46,8 @@ write(
 write(
   "AGENT-INSTRUCTIONS/LOCAL/models.json",
   JSON.stringify({
-    opencode: { coordinator: { model: "prov/coordinator-model", variant: "low" } },
-    sessions: {},
+    agents: {},
+    sessions: { coordinator: { model: "prov/coordinator-model", variant: "low" } },
   }),
 )
 write(

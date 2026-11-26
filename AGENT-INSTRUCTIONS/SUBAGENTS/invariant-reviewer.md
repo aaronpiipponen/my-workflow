@@ -34,7 +34,7 @@ product code importing it; skip items 1–4 below for that code.
 1. **No-hack (REPO-RULES §0):** hardcoded model/provider/key/URL/value/id/threshold/version;
    duplicate behavior path; swallowed exception; inferred data passed off as authoritative;
    fake/mock product behavior.
-2. **Hard invariants (REPO-RULES §2):** every invariant in the workspace's `repo-rules-domain.md` §2,
+2. **Hard invariants (the domain rules' §2):** every invariant in the workspace's `repo-rules-domain.md` §2,
    by number.
 3. **Stale docs (REPO-RULES §3):** behavior changed but a relevant documentation page was not
    updated, or a changed page states something wrong. Name the page. Do not require pages before

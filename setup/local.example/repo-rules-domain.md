@@ -30,7 +30,7 @@ feature, and the documentation areas. Delete a line that does not apply.>
 
 ---
 
-## Test and review exceptions
+## 3b. Test and review exceptions
 
 - **What to test here.** <The user-visible or data-integrity behaviors this workspace must prove.>
 - <An authorized exception: what it allows, why the user granted it, and what it does not change.>

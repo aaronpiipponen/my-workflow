@@ -1,6 +1,6 @@
 {
   "name": "opencode-workflow",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Per-agent instruction delivery and phase scaffolding for the workflow",
   "type": "module",
   "main": "index.js",

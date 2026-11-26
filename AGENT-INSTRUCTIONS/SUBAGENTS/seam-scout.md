@@ -27,9 +27,6 @@ The only hard boundary is that you cannot change anything or run the project:
   every other shell command is denied, so never attempt tests or builds, such as `uv`,
   `pytest` or `ruff`, or edits. Never redirect git output to a file (`>`, `>>`, `--output`, `tee`);
   read it directly.
-- Do not use Read on llm-tether files either: use shell `cat` only if the shell permissions
-  and directory access allow it. Otherwise rely on the tracked benchmark evidence or
-  report that the untracked source is inaccessible; never fall back to the broken reader.
 - Read files whole rather than in fragments; a scout that loses the document loses the
   thread. It is fine to read many files.
 - Do not chase the entire repository. Explore outward from the requested area until the

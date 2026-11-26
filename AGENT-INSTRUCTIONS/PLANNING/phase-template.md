@@ -90,7 +90,7 @@ config keys or permanent docs are required.
 **Values to try:** <models, settings, variants; the implementer may iterate within these>.
 **How to run:** <entrypoint in the experiment directory, external services, credentials handling,
 expected duration and owner of any slow run>.
-**Results:** <dated note path in the plan folder's `benchmarks/`; which outputs must stay saved and unchanged>.
+**Results:** <dated note path in the plan folder's `findings/`; which outputs must stay saved and unchanged>.
 **Binding rules:** <the REPO-RULES §0a items this experiment could break, made specific>.
 **Budget:** <time/cost budget; stop and report if exceeded>.
 **Done when:** <the result note answers the question with an honest run record>.

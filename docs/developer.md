@@ -21,7 +21,7 @@ The repository ships four plugins under `plugins/`, and two more are submodules.
 
 The command routing lives in `commandTarget` and `startSession`: a command in a plan's worktree runs in its session, and one in the root or the integration worktree creates a new session in the target worktree with the source session's agent and model, then records the role with `setRole`. `renderCommand` places a command's arguments at `$ARGUMENTS`, or appends them when the body names no place.
 
-`plugins/workflow/workspace.js` reads `workspace.json` and the `sessions` models of `models.json`, lists the plans and creates a plan's branch, worktree and starting files for `/plan-new` and `/shadow-plan`. `plugins/workflow/rpc.js` and `plugins/workflow/tui.js` hold the terminal side: the `/plan-new` and `/shadow-plan` dialogs, the plan picker and the move to a new session. The exported helpers, among them `splitSections`, `selectSections`, `entriesFor`, `planOf`, `branchOf`, `rootOf` and `commitRoot`, are what the test suite calls directly.
+`plugins/workflow/workspace.js` reads `workspace.json` and both model tables of `models.json` — `sessions` for the sessions the tooling opens, `agents` for the stamped subagents — lists the plans and creates a plan's branch, worktree and starting files for `/plan-new` and `/shadow-plan`. `plugins/workflow/rpc.js` and `plugins/workflow/tui.js` hold the terminal side: the `/plan-new` and `/shadow-plan` dialogs, the plan picker and the move to a new session. The exported helpers, among them `splitSections`, `selectSections`, `entriesFor`, `planOf`, `branchOf`, `rootOf` and `commitRoot`, are what the test suite calls directly.
 
 ### coordinator
 
@@ -63,7 +63,7 @@ A section is selected by its number, such as `"3a"`, or by its heading title, su
 
 The injected parts of a session are built once and reused byte for byte, so the model's read cache holds. `/workflow-reload` drops one session's snapshot and reloads the skill registry. The snapshots live in process state and survive a plugin reload when their shape validates.
 
-The edit guard holds an edit under `AGENT-INSTRUCTIONS/` outside `PLANS/`, or to `AGENTS.md`, until the session has loaded the `agent-instructions` skill, and refuses a shell command that names an instruction file and writes it. `setup/setup-workspace.py --check` catches what the guard cannot see, such as a link a regular file replaced.
+The edit guard holds an edit under `AGENT-INSTRUCTIONS/` outside `PLANS/`, or to `AGENTS.md`, until the session has loaded the `agent-instructions` skill, and refuses a shell command that writes an instruction file. It judges the write target: a redirection, `tee`, or the destination or operand of a writing command, in the command segment that writes. A command that only mentions an instruction path is allowed, and a write into `PLANS/` is allowed. `setup/setup-workspace.py --check` catches what the guard cannot see, such as a link a regular file replaced.
 
 To add a rule, put a generic rule in the shared file that owns its area and a workspace value in that workspace's `LOCAL/` slot. A procedure only some work needs becomes a skill whose `source` names the shared file. A rule that must reach a role it does not reach needs a change in `bindings.default.json`, and a file every workspace must receive also goes into `setup/setup-workspace.py`.
 
@@ -92,7 +92,7 @@ The coordinator's state lives under `<workspace root>/.opencode/coordinator/`, w
 | `sent/<plan>/full-plan.md` | The last full plan sent to the coordinator, the base of the next diff |
 | `sent/<plan>/blocks.json` | The touched-files blocks sent with it |
 
-`AGENT-INSTRUCTIONS/LOCAL/workspace.json` holds the integration branch, the lockable resource names and the locked shell commands with their two comments. A missing file, an unknown locked resource, an empty comment or an invalid pattern fails the operation instead of guessing a default.
+`AGENT-INSTRUCTIONS/LOCAL/workspace.json` holds the integration branch, the protected worktrees no writing role may edit, the lockable resource names and the locked shell commands with their two comments. A missing file, an unknown locked resource, an empty comment or an invalid pattern fails the operation instead of guessing a default.
 
 ## OpenCode behaviour the plugins rely on
 

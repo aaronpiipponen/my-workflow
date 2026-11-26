@@ -70,9 +70,9 @@ The configuration files are machine state and are ignored by Git. `git submodule
 
    The script links the shared instruction tree and `AGENTS.md` into the root, creates every `LOCAL/` slot from `setup/local.example/` and the root's `.opencode/opencode.json` where they are missing, makes the root its own Git repository, links `AGENTS.md` and `AGENT-INSTRUCTIONS` into every worktree, registers the workspace with the workflow plugin and stamps the agents into `.opencode/agents/`. It prints one line per path with its action.
 
-3. Fill the workspace's `LOCAL/` slots. `workspace.json` names the integration branch, the lockable resources and the shell commands each lock guards, and the other slots the project's sources, gates, documentation set and publication boundary. Each slot's template describes what it holds. Empty a slot the workspace does not use instead of deleting it: the setup recreates a missing slot, while an empty one injects nothing and passes `--check`.
+3. Fill the workspace's `LOCAL/` slots. `workspace.json` names the integration branch, the protected worktrees (whose files no writing role may edit, such as a deployed site checkout), the lockable resources and the shell commands each lock guards, and the other slots the project's sources, gates, documentation set and publication boundary. Each slot's template describes what it holds. Empty a slot the workspace does not use instead of deleting it: the setup recreates a missing slot, while an empty one injects nothing and passes `--check`.
 
-4. Assign a model to every role in `AGENT-INSTRUCTIONS/LOCAL/models.json`, from a provider configured in OpenCode, then stamp the agents again from the workspace root so the roles take it. Its `sessions` table names the model of each session the workflow opens: the `/plan` and `/release` orchestrators it starts in a new session, and the `/shadow-plan` working session. A command that names a session with no model there fails with the missing entry.
+4. Assign a model to every role in `AGENT-INSTRUCTIONS/LOCAL/models.json`, from a provider configured in OpenCode, then stamp the agents again from the workspace root so the roles take it. Its `sessions` table names the model of each session the tooling opens: the `/plan` and `/release` orchestrators it starts in a new session, the `/shadow-plan` working session, and the coordinator. Its `agents` table names every stamped subagent. A role that has no model in the table it belongs to fails with the missing entry.
 
    ```bash
    python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py
@@ -82,7 +82,7 @@ The configuration files are machine state and are ignored by Git. `git submodule
 
 6. Start the plan with `/plan <name>`, and link it with `/coordinator-link` in its chat once its first phase is detailed.
 
-Run the workspace setup again after adding a worktree by hand or updating the workflow. Existing links and slots are left alone. `--check` writes nothing and fails on a link a regular file replaced, a link whose source is gone, a missing required slot, an unregistered workspace and a slot identical to its template.
+Run the workspace setup again after adding a worktree by hand or updating the workflow. Existing links and slots are left alone. `--check` writes nothing and fails on a link a regular file replaced, a link whose source is gone, a missing required slot, an unregistered workspace, a slot identical to its template, a section of a `LOCAL/` slot that no role receives, a relative link in a slot that resolves to nothing, and generated agents older than their sources.
 
 ## Run a toy test
 

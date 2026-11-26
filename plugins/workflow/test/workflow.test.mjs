@@ -386,6 +386,18 @@ for (const command of reads) {
   check(`allows: ${command.slice(0, 40)}`, (await evaluate("s20", command)).effect === "allow")
 }
 check("denies the long in-place flag", (await evaluate("s18", "sed --in-place 's/a/b/' AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md")).effect === "deny")
+// The guard judges the write target, not any instruction path the command's text mentions.
+const mentions = [
+  "cat > AGENT-INSTRUCTIONS/PLANS/demo/notes.md <<'E'\nsee AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py\nE",
+  "grep -n rule AGENT-INSTRUCTIONS/PUBLISHING/selection.example.py; diff <(sed -n 1,2p web/package.json) <(sed -n 1,2p AGENT-INSTRUCTIONS/PUBLISHING/public-assets/web/package.json)",
+  "cp src/foo.py src/bar.py && echo AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md",
+]
+for (const command of mentions) {
+  check(`allows a command that only mentions an instruction path: ${command.slice(0, 40)}`, (await evaluate("s21", command)).effect === "allow")
+}
+check("denies a copy whose destination is instruction text", (await evaluate("s22", "cp draft.md src/backup.md AGENT-INSTRUCTIONS/BUILDING/")).effect === "deny")
+check("denies a move out of the instruction tree", (await evaluate("s23", "mv AGENT-INSTRUCTIONS/BUILDING/REPO-RULES.md /tmp/x.md")).effect === "deny")
+check("allows a move into a plan folder", (await evaluate("s24", "mv notes.md AGENT-INSTRUCTIONS/PLANS/demo/notes.md")).effect === "allow")
 // Check that a workflow command marks its session for role file delivery.
 const roled = harness(roots.main, {
   bindings: {
@@ -516,7 +528,7 @@ const sessionModels = {
   release: { model: "prov/team/release-model" },
   shadow: { model: "prov/shadow-model", variant: "low" },
 }
-writeFileSync(modelsFile, JSON.stringify({ opencode: {}, sessions: sessionModels }))
+writeFileSync(modelsFile, JSON.stringify({ agents: {}, sessions: sessionModels }))
 
 const spaced = harness(space)
 await plugin.setup(spaced.ctx)
@@ -630,17 +642,17 @@ check(
     spaced.captured.events.at(-1)?.name === "started",
 )
 check("shadow-plan's session runs on the shadow model", JSON.stringify(spaced.captured.models.get(`new-${spaced.captured.created}`)) === JSON.stringify({ providerID: "prov", id: "shadow-model", variant: "low" }))
-writeFileSync(modelsFile, JSON.stringify({ opencode: {}, sessions: { plan: sessionModels.plan, release: sessionModels.release } }))
+writeFileSync(modelsFile, JSON.stringify({ agents: {}, sessions: { plan: sessionModels.plan, release: sessionModels.release } }))
 const noShadowModel = await spaced.captured.rpc.planNew({ directory: space, name: "shadow-y", kind: "shadow" })
 check(
   "shadow-plan without a shadow model fails before creating anything",
   noShadowModel.message.includes('no "sessions" model for "shadow"') && !existsSync(path.join(space, "shadow-y")) && !existsSync(path.join(space, "AGENT-INSTRUCTIONS", "PLANS", "shadow-y")),
 )
-writeFileSync(modelsFile, JSON.stringify({ opencode: {}, sessions: { release: sessionModels.release } }))
+writeFileSync(modelsFile, JSON.stringify({ agents: {}, sessions: { release: sessionModels.release } }))
 spaced.captured.directories.set("p9", space)
 const noPlanModel = await runCommand(planCommand, "p9", "plan-x")
 check("/plan without a plan model fails, naming the missing entry", noPlanModel?.includes('no "sessions" model for "plan"'))
-writeFileSync(modelsFile, JSON.stringify({ opencode: {}, sessions: { ...sessionModels, plan: { model: "no-provider" } } }))
+writeFileSync(modelsFile, JSON.stringify({ agents: {}, sessions: { ...sessionModels, plan: { model: "no-provider" } } }))
 check("a model without a provider fails", (await runCommand(planCommand, "p9", "plan-x"))?.includes('must be "<provider>/<model>"'))
 check("shadow-plan refuses an unknown kind", (await spaced.captured.rpc.planNew({ directory: space, name: "z", kind: "other" })).message.includes('unknown plan kind "other"'))
 

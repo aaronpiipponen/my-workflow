@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml"><img alt="Continuous integration" src="https://github.com/aaronpiipponen/my-workflow/actions/workflows/ci.yml/badge.svg"></a>
   <a href="/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <a href="/plugins/workflow/package.json"><img alt="Version 0.2.2" src="https://img.shields.io/badge/version-0.2.2-blue.svg"></a>
+  <a href="/plugins/workflow/package.json"><img alt="Version 0.2.3" src="https://img.shields.io/badge/version-0.2.3-blue.svg"></a>
 </p>
 
 ---
@@ -169,7 +169,7 @@ Requirements:
    python /path/to/my-workflow/setup/setup-workspace.py .
    ```
 
-5. Assign a model from a provider configured in OpenCode to every role in `AGENT-INSTRUCTIONS/LOCAL/models.json`, and to the plan, release and shadow sessions in its `sessions` table, and stamp the agents again. The result is one agent file per role on its model.
+5. Assign a model from a provider configured in OpenCode to every role in `AGENT-INSTRUCTIONS/LOCAL/models.json`: its `agents` table covers every stamped agent, and its `sessions` table the plan, release and shadow sessions the workflow opens. Then stamp the agents again. The result is one agent file per role on its model.
 
    ```bash
    python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py

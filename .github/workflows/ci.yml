@@ -44,7 +44,23 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile the setup and toy scripts
-        run: python -m py_compile setup/setup-machine.py setup/plugins.py setup/setup-workspace.py toy/run.py toy/drive.py .github/scripts/check-links.py
+        run: python -m py_compile setup/setup-machine.py setup/plugins.py setup/setup-workspace.py setup/sample-workspace.py toy/run.py toy/drive.py .github/scripts/check-links.py
+
+  workspace-setup:
+    name: Workspace setup and generated agents
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # A sample workspace proves the links, the slots, the section bindings and the agent stamping.
+      - name: Set up a sample workspace and check it
+        run: python setup/sample-workspace.py
 
   docs-links:
     name: Documentation links

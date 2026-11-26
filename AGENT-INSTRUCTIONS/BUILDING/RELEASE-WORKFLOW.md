@@ -35,10 +35,14 @@ them. `DOCUMENTATION-STYLE-GUIDE.md` governs every text the release writes.
    the merge will produce, not the tree the plan branched from. Releases run one at a time, so the
    integration branch does not move again before this release merges. A hotfix has no plan branch
    and runs in the integration worktree, so it skips this step.
-2. **Export.** Run `python AGENT-INSTRUCTIONS/PUBLISHING/export.py` and list every uncommitted file in
-   the public checkout: pages, diagrams, screenshots, the documentation index where the workspace has
-   one, the interface wording, and every source, configuration and test file whose comments fall
-   under the style guide.
+2. **Export.** From the plan's worktree, run `python AGENT-INSTRUCTIONS/PUBLISHING/export.py` and list
+   every uncommitted file in the public checkout: pages, diagrams, screenshots, the documentation
+   index where the workspace has one, the interface wording, and every source, configuration and test
+   file whose comments fall under the style guide. The exporter refuses a root that is not a project
+   checkout, so a run from the workspace root fails instead of cleaning the target. Then diff the
+   private and public CI workflows step by step: every step present in only one file is either a
+   deployment or private-tooling difference the user accepts, or a missing step to add before the
+   push.
 3. **Scope read-only in the public checkout.** Read-only `ops-scout` audits work on disjoint file sets:
    claims against source, style drift, pages made stale by changed code, missing coverage for new
    behavior, links and anchors, diagrams, screenshots against the workspace's capture setup where it

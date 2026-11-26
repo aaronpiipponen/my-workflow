@@ -104,7 +104,7 @@ distinct areas.
   phase just to change wording.
 - Use the cheapest capable scout first and do not re-read what is settled. Never condense scout
   findings from memory into a few plan lines: save the complete findings, with file:line evidence,
-  as a working file in the plan folder and point the phase at it.
+  as a dated note under the plan folder's `findings/` and point the phase at it.
 - Every child prompt says: never use the question tool; return `USER DECISION REQUIRED` or
   `BLOCKED` instead. Relay a new constraint of mine to the exact unfinished child before it resumes.
   A child that skipped part of its own workflow is unfinished: resume that session to finish it.
@@ -136,6 +136,11 @@ Detail initial active phase <phase-id> of <plan>. No implementation exists; crea
 implementation-ready phase document from current authoritative files.` Handle decision requests
 through the loop below and resume the same advancer with the resolved decision. Require
 `DETAIL READY` before any implementer.
+
+**A shadow-built S1.** When a shadow orchestrator kept phase S1 beside my interactive work, S1
+turns `active` only when I tell you the interactive work is done. Then flip its row to `active` and
+spawn a fresh `phase-advancer` with `DETAIL ACTIVE (shadow-built): Audit and complete phase S1 of
+<plan>.` instead of the initial detail prompt; `PLANNING/SHADOW.md` owns the handover.
 
 **Before every implementer** (remediation units included), do one acceptance check and post me a
 rundown. Treat the detailed phase and the advancer's summary as written by an adversary that may

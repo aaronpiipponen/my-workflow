@@ -33,12 +33,14 @@ non-zero so a half-configured workspace is visible.
 ``--check`` verifies the links instead of creating them. It exists because a tool that writes by
 renaming (``sed -i``, an editor's atomic save) replaces a symlink with a regular file, which
 silently detaches the workspace from the workflow while the text looks correct. It also fails on a
-link whose workflow source is gone, on a path the root repository does not ignore, and on a LOCAL
-slot still identical to its template.
+link whose workflow source is gone, on a path the root repository does not ignore, on a LOCAL slot
+still identical to its template, on a section of a LOCAL slot that no role receives, on a relative
+link in a LOCAL slot that resolves to nothing, and on generated agents older than their sources.
 """
 
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -74,6 +76,13 @@ ROOT_IGNORE = "\n".join(
 
 # The two paths each worktree links to the root.
 WORKTREE_LINKS = ("AGENTS.md", "AGENT-INSTRUCTIONS")
+
+# A level-two heading and its optional number, read the way the workflow plugin's splitSections
+# addresses a bound section: by number when it has one, and by title.
+SECTION_HEADING = re.compile(r"^##\s+(.+)$")
+NUMBERED_HEADING = re.compile(r"^(\d+[a-z]?)\.\s+(.*)$")
+# A Markdown link target without its anchor.
+LINK_TARGET = re.compile(r"\]\(([^)#\s]+)(?:#[^)]*)?\)")
 
 
 def git(*args, cwd: Path):
@@ -246,6 +255,40 @@ def bound_files():
     return found
 
 
+def bound_sections():
+    """Every LOCAL slot the delivery map names, as {relative path: the section ids it delivers}.
+
+    A slot that any binding delivers whole maps to None, because every section reaches someone.
+    """
+    found = {}
+    config = json.loads(BINDINGS.read_text(encoding="utf-8"))
+    for group in ("agents", "roles"):
+        for entries in config.get(group, {}).values():
+            for item in entries:
+                path = item.get("file", "")
+                if not path.startswith("AGENT-INSTRUCTIONS/LOCAL/"):
+                    continue
+                ids = item.get("sections")
+                if ids is None or (path in found and found[path] is None):
+                    found[path] = None
+                else:
+                    found[path] = found.get(path, set()) | {value.lower() for value in ids}
+    return found
+
+
+def section_headings(text: str):
+    """Each level-two heading with the ids it answers to: its title, and its number when it has one."""
+    headings = []
+    for line in text.splitlines():
+        match = SECTION_HEADING.match(line)
+        if not match:
+            continue
+        numbered = NUMBERED_HEADING.match(match.group(1))
+        title = (numbered.group(2) if numbered else match.group(1)).strip().lower()
+        headings.append((match.group(1), {title, *([numbered.group(1)] if numbered else [])}))
+    return headings
+
+
 def registered(root: Path):
     bindings = WORKFLOW / "plugins" / "workflow" / "bindings.json"
     return bindings, bindings.exists() and str(root) in json.loads(bindings.read_text(encoding="utf-8")).get("workspaces", [])
@@ -290,6 +333,25 @@ def check(root: Path, links, files, stale, trees):
         if relative.startswith("AGENT-INSTRUCTIONS/LOCAL/"):
             if not (TEMPLATES / relative[len("AGENT-INSTRUCTIONS/LOCAL/"):]).is_file():
                 rows.append(("NEEDS (no template for a bound slot)", target))
+    for relative, ids in bound_sections().items():
+        target = root / relative
+        if ids is None or not target.is_file():
+            continue
+        for heading, keys in section_headings(target.read_text(encoding="utf-8")):
+            if not keys & ids:
+                rows.append((f"NEEDS (no role receives the section '{heading}')", target))
+    local = root / "AGENT-INSTRUCTIONS" / "LOCAL"
+    for slot in sorted(local.glob("*.md")) if local.is_dir() else []:
+        # A site-absolute link ("/docs/...") describes the documentation set, not a path from the slot.
+        for link in LINK_TARGET.findall(slot.read_text(encoding="utf-8")):
+            relative = "://" not in link and not link.startswith(("/", "mailto:"))
+            if relative and not (slot.parent / link).exists():
+                rows.append((f"NEEDS (link to a missing path: {link})", slot))
+    generator = root / "AGENT-INSTRUCTIONS" / "SUBAGENTS" / "gen_agents.py"
+    if generator.exists():
+        stale = subprocess.run([sys.executable, str(generator), "--check"], cwd=root, capture_output=True, text=True)
+        if stale.returncode != 0:
+            rows.append(("NEEDS (generated agents differ from their sources; run gen_agents.py)", root / ".opencode"))
     assets = root / "AGENT-INSTRUCTIONS" / "PUBLISHING" / "public-assets"
     if not assets.is_dir():
         rows.append(("NEEDS (publishing assets directory missing)", assets))

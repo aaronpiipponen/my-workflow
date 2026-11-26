@@ -39,17 +39,120 @@ const PHASE_FENCE = /```markdown\n([\s\S]*?)```/g
 // handoff, are working state.
 const WORKING_STATE = /^PLANS$/
 const INSTRUCTION_FILE = /AGENT-INSTRUCTIONS\/(?!PLANS\/)[\w.-]|(?:^|[\s"'=/])AGENTS\.md\b/
-// A redirection or `tee` writes only its target; other writers are judged by the named file.
+// A redirection or `tee` writes only its target; other writers are judged by their own operands.
 const REDIRECT_TARGET = /(?:^|[^<>0-9&])>>?\s*(['"]?)([^\s'";|&<>]+)\1|\btee\b((?:\s+-[a-z-]+)*\s+[^|;&]+)/g
-const WRITER =
-  /\b(?:sed|perl)\b[^|;&]*\s(?:-[a-zA-Z]*i|--in-place)\b|\b(?:mv|cp|rm|ln|install|truncate|touch|dd)\b|\b(?:python3?|node|ruby|perl)\b[\s\S]*(?:\bwrite|\bopen\s*\([^)]*['"][wax]|\bunlink\b|\brename\b|\bwrite_text\b)/
+const IN_PLACE = /\s(?:-[a-zA-Z]*i|--in-place)\b/
+const WRITE_CODE =
+  /\bwrite(?:_text)?\b|\bopen\s*\([^)]*['"][wax+]|\bunlink\b|\brename\b|\b(?:write|append)File\w*\b|\bshutil\.(?:copy|copy2|copyfile|move|rmtree)\b|\bos\.(?:remove|rename|unlink)\b/
+// The operand each writer rewrites: its destination, every operand, or an `of=` target.
+const OPERAND_WRITERS = {
+  cp: "last",
+  mv: "last",
+  ln: "last",
+  install: "last",
+  rm: "all",
+  rmdir: "all",
+  truncate: "all",
+  touch: "all",
+  dd: "of",
+}
+// `mv` also destroys its source, so a move of instruction text out of the tree is refused.
+const SOURCE_WRITERS = new Set(["mv"])
+// A heredoc body is data written to the redirection's target, not further commands.
+const HEREDOC = /<<-?\s*(['"]?)([A-Za-z_][\w-]*)\1[^\n]*\n([\s\S]*?)\n\2(?=\n|$)/g
+const INTERPRETER = /^(?:python3?|node|ruby|perl)$/
+
+/** Split a shell command at the operators that begin another command, keeping quoted text whole. */
+function segments(command) {
+  const parts = []
+  let current = ""
+  let quote = null
+  for (let index = 0; index < command.length; index += 1) {
+    const character = command[index]
+    if (quote) {
+      current += character
+      if (character === quote) quote = null
+      continue
+    }
+    if (character === "'" || character === '"') {
+      quote = character
+      current += character
+      continue
+    }
+    const pair = command.slice(index, index + 2)
+    if (pair === "&&" || pair === "||") {
+      parts.push(current)
+      current = ""
+      index += 1
+      continue
+    }
+    if (character === ";" || character === "|" || character === "\n") {
+      parts.push(current)
+      current = ""
+      continue
+    }
+    current += character
+  }
+  parts.push(current)
+  return parts
+}
+
+/** Split one segment into words, dropping the quotes around a path. */
+function words(segment) {
+  const found = []
+  let current = ""
+  let quote = null
+  for (const character of segment) {
+    if (quote) {
+      if (character === quote) quote = null
+      else current += character
+      continue
+    }
+    if (character === "'" || character === '"') {
+      quote = character
+      continue
+    }
+    if (/\s/.test(character)) {
+      if (current) found.push(current)
+      current = ""
+      continue
+    }
+    current += character
+  }
+  if (current) found.push(current)
+  return found
+}
+
+/** Report whether one command segment rewrites an instruction file. */
+function segmentWrites(segment) {
+  for (const match of segment.matchAll(REDIRECT_TARGET)) {
+    if (INSTRUCTION_FILE.test(match[2] ?? match[3] ?? "")) return true
+  }
+  const tokens = words(segment)
+  const verb = tokens.findIndex((token) => token in OPERAND_WRITERS)
+  if (verb >= 0) {
+    const operands = tokens.slice(verb + 1).filter((token) => !token.startsWith("-"))
+    const name = tokens[verb]
+    const targets =
+      OPERAND_WRITERS[name] === "last"
+        ? operands.slice(-1)
+        : OPERAND_WRITERS[name] === "of"
+          ? operands.filter((token) => token.startsWith("of=")).map((token) => token.slice(3))
+          : operands
+    if (targets.some((target) => INSTRUCTION_FILE.test(target))) return true
+    return SOURCE_WRITERS.has(name) && operands.some((operand) => INSTRUCTION_FILE.test(operand))
+  }
+  const inPlace = tokens.some((token) => token === "sed" || token === "perl") && IN_PLACE.test(` ${segment}`)
+  if (inPlace) return tokens.slice(1).some((token) => !token.startsWith("-") && INSTRUCTION_FILE.test(token))
+  const interpreter = tokens.some((token) => INTERPRETER.test(token))
+  return interpreter && WRITE_CODE.test(segment) && INSTRUCTION_FILE.test(segment)
+}
 
 /** Report whether a shell command writes a file in the instruction tree. */
 export function writesInstructions(command) {
-  for (const match of command.matchAll(REDIRECT_TARGET)) {
-    if (INSTRUCTION_FILE.test(match[2] ?? match[3] ?? "")) return true
-  }
-  return WRITER.test(command) && INSTRUCTION_FILE.test(command)
+  // Judge the commands, not the heredoc bodies they feed to a redirection.
+  const commands = command.replace(HEREDOC, (match, quote, name, body) => match.replace(body, ""))
+  return segments(commands).some(segmentWrites)
 }
 
 /**

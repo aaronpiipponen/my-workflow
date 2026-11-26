@@ -36,7 +36,7 @@ The header is centred and comes before everything else, in this order:
    with the product's name as its alt text.
 2. One sentence that states what the product is.
 3. Optional deployment links: the running site and its documentation, in one sentence.
-4. The badges, in one `<p align="center">` block: continuous integration, licence and version,
+4. The badges, in one `<p align="center">` block: continuous integration, license and version,
    each a link to what it reports.
 5. A horizontal rule (`---`).
 
@@ -67,7 +67,7 @@ apply to the repository is left out, never left empty.
    stops.
 7. **Run your own copy.** The requirements as a list, then numbered steps, each step with its
    command and its visible result, and links to the setup pages for the full procedure.
-8. **License.** One sentence naming the licence and linking the licence file.
+8. **License.** One sentence naming the license and linking the license file.
 9. **A closing section on the project's standing**, such as `Independent project`, when the
    product presents third-party data or names organizations it is not affiliated with.
 

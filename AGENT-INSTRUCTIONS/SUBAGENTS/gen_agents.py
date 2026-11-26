@@ -152,6 +152,23 @@ def _permission_rule(action, resource, effect):
     ]
 
 
+def _protected():
+    """The worktrees beside the plan worktrees that no writing role may edit.
+
+    `LOCAL/workspace.json` names them; a workspace without the key protects none. The patterns are
+    denied after the allows, because the last matching rule wins.
+    """
+    path = os.path.join(LOCAL_DIR, "workspace.json")
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8") as handle:
+        settings = json.load(handle)
+    names = settings.get("protected_worktrees", [])
+    if not isinstance(names, list):
+        raise ValueError('workspace.json: "protected_worktrees" must be a list of directory names')
+    return [f"{name}/**" for name in names]
+
+
 def _write_rules(name, metadata, workflow):
     """Build the edit rules for a writing role from its single write capability."""
     capability = metadata.get("write")
@@ -163,8 +180,14 @@ def _write_rules(name, metadata, workflow):
         raise ValueError(f"{name}.md: 'write' is invalid with 'access: read-only'")
     allow, deny = _capability(capability, "write", workflow)
     if allow == ["*"]:
-        # Unrestricted writes need no rule: OpenCode allows the edit action by default.
-        return []
+        # Unrestricted writes take no allow rule, since OpenCode allows the action by default, but
+        # the protected worktrees are still denied.
+        rules = []
+        for action in ("edit", "write"):
+            rules.extend(_permission_rule(action, "*", "allow"))
+            for pattern in _expanded(_protected()):
+                rules.extend(_permission_rule(action, pattern, "deny"))
+        return rules
     # "edit" carries the edit, write and patch tools in V2. The same policy is emitted for the
     # "write" action as well, so a deployment that exposes it separately stays inside the gate.
     rules = []
@@ -177,6 +200,8 @@ def _write_rules(name, metadata, workflow):
             rules.extend(_permission_rule(action, "*", "allow"))
             for pattern in _expanded(deny):
                 rules.extend(_permission_rule(action, pattern, "deny"))
+        for pattern in _expanded(_protected()):
+            rules.extend(_permission_rule(action, pattern, "deny"))
     return rules
 
 
@@ -267,6 +292,12 @@ def _assignment_for(models, tool, name):
     return assignment
 
 
+# The one primary-mode body: an orchestrator session that needs a persona to carry its deny-write
+# permissions. Its model is the session entry the coordinator plugin also reads, so the role is named
+# once, not twice.
+SESSION_AGENTS = {"coordinator": "sessions"}
+
+
 def _targets():
     models = _load_models()
     workflow = _load_workflow()
@@ -275,7 +306,11 @@ def _targets():
         yield (
             os.path.join(OPENCODE_DIR, f"{name}.md"),
             render_opencode(
-                name, metadata, body, _assignment_for(models, "opencode", name), workflow
+                name,
+                metadata,
+                body,
+                _assignment_for(models, SESSION_AGENTS.get(name, "agents"), name),
+                workflow,
             ),
         )
 

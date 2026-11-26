@@ -4,7 +4,8 @@ The workspace's interface reference for `AGENT-INSTRUCTIONS/BUILDING/UI-BUILDING
 
 ## Reference elements
 
-Name the component and file to reuse for each kind of element.
+Name the component and file to reuse for each kind of element. Only elements the user accepted in a
+UI check belong here; list the others under "Pending acceptance".
 
 - Overlay or picker: `<component, path>`
 - Result row or card: `<component, path>`
@@ -12,6 +13,12 @@ Name the component and file to reuse for each kind of element.
 - Notice: `<component, path>`
 - Switch, toggle, dropdown, slider: `<component, path>`
 - Drawer or sheet: `<component, path>`
+
+## Pending acceptance
+
+Elements that exist but the user has not accepted in a UI check. They are never reference elements.
+
+- `<component, path>`
 
 ## Motion and styling values
 

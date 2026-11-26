@@ -10,8 +10,12 @@ python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py
 python AGENT-INSTRUCTIONS/SUBAGENTS/gen_agents.py --check
 ```
 
-If a future CI docs gate or pre-commit hook is introduced, it must run `--check`; update
-this section with its exact path and command when created.
+CI stamps a sample workspace from `setup/local.example/`, fails on a stale agent, and runs the
+setup check on a real workspace. `setup/sample-workspace.py` does the whole sample run:
+
+```bash
+python setup/sample-workspace.py
+```
 
 ## The orchestrator authority block
 

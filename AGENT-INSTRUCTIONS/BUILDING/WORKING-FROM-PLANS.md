@@ -29,7 +29,7 @@ these rules apply.
   `done/<id>.md` (frozen contract only) and flip status table row to `done`. Keep
   `done/<id>.md` to **decisions, invariants, and contract guarantees** later phases depend on,
   not duplicated signatures/config values: current source owns
-  those (one source of truth - REPO-RULES §2.7).
+  those (one source of truth - REPO-RULES §0b).
 - **Know the phase kind.** A phase with gate level `experiment` is disposable experiment work
   (REPO-RULES §0a): it carries a short brief, not an implementation-grade spec. Follow the brief's
   question, fixed inputs, values to try, run steps and budget; choose mechanics and iterate on the

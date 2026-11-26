@@ -44,7 +44,7 @@ The user works with orchestrators: long-lived sessions that own one job each and
 
 `/shadow-plan` creates a shadow plan for interactive work: a plan whose starting files come filled from `PLANNING/plan-templates/shadow/`, with one cleanup phase S1 `active` and the workspace's own `LOCAL/shadow-scope.md` added to its `scope.md`. It opens a working session in the new worktree, where the user types `/shadow-register`. The shadow keeps S1 ready; the plan then runs S1 through `/plan`, and S1's review rounds stand in for the closing survey.
 
-A session the workflow opens for a role runs on the model the `sessions` table of `LOCAL/models.json` names for it: `plan`, `release` (a hotfix included) or `shadow`. A command typed in a plan's worktree runs in that chat on its own model.
+A session the workflow opens for a role runs on the model the `sessions` table of `LOCAL/models.json` names for it: `plan`, `release` (a hotfix included), `shadow`, or `coordinator`, which is the one session that also needs an agent persona. `agents` holds the stamped subagents. A command typed in a plan's worktree runs in that chat on its own model.
 
 A session runs one role. `/plan` and `/release` refuse the coordinator, a shadow orchestrator's session (marked `shadowOrchestrator` by its plugin), a session that already runs a role, and any directory that is neither the workspace root, the integration worktree nor a plan's worktree. Typed in a plan's worktree, the command runs in that session. Typed in the workspace root, it opens a new session in the plan's worktree, and the chat it was typed in keeps its own role and directory. Without a plan name, it offers the workspace's plans to pick from. The integration worktree behaves the same for `/plan`, but `/release` there always starts a hotfix in that worktree, whatever the argument. `/plan-new` asks for a name and creates the plan's branch, worktree and starting plan files.
 
@@ -57,7 +57,7 @@ A plan's working state lives in `AGENT-INSTRUCTIONS/PLANS/<plan>/` in the root:
 - `full-plan.md` holds the scope, the design rules and the phase status table, with exactly one phase `active`.
 - `phases/<id>-<title>.md` holds the implementation-grade document of an open phase, and `done/<id>-<title>.md` its frozen contract once it completes.
 - `scope.md` holds the authorized unit and the plan's boundaries, and `handoff.md` the orchestrator's next action, current state and learned rules.
-- `docs-pass.md` holds the documentation items deferred to the release, `benchmarks/` dated experiment records, and `autonomous-decisions.md` each decision the orchestrator took in autonomous mode.
+- `docs-pass.md` holds the documentation items deferred to the release, `findings/` dated experiment, run, survey and scout records, and `autonomous-decisions.md` each decision the orchestrator took in autonomous mode.
 
 `PLANS/archive/` holds closed plans, and `PLANS/shared/` the designs that hold pairs agreed on.
 
