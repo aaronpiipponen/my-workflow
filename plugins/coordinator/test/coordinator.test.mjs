@@ -212,6 +212,32 @@ const rootInstance = await setup("root")
 check("offers phase_subagent only in a plan's worktree", !rootInstance.tools.phase_subagent && rootInstance.tools.hold_arm)
 rootInstance.dispose()
 
+// The link creates no session until the model for it resolves, so a workspace whose models.json has
+// no coordinator entry fails at the link, naming the table, and leaves nothing linked.
+plan("plan-c", [["C1", "active"], ["C2", "planned"]])
+write(
+  "AGENT-INSTRUCTIONS/LOCAL/models.json",
+  JSON.stringify({ agents: {}, sessions: {} }),
+)
+session("orch-d", "plan-c")
+const d = await setup("plan-c")
+await d.commands["coordinator-link"].execute({ sessionID: "orch-d" })
+const missing = notes.at(-1)?.text ?? ""
+check(
+  "a missing coordinator model fails the link, naming the sessions table, and links nothing",
+  missing.includes('no "sessions" model for "coordinator"') &&
+    readLinks(root).coordinator === null &&
+    [...sessions.values()].every((entry) => entry.agent !== "coordinator"),
+  missing,
+)
+write(
+  "AGENT-INSTRUCTIONS/LOCAL/models.json",
+  JSON.stringify({
+    agents: {},
+    sessions: { coordinator: { model: "prov/coordinator-model", variant: "low" } },
+  }),
+)
+
 // Linking.
 await a.commands["coordinator-link"].execute({ sessionID: "orch-a" })
 const coordinator = readLinks(root).coordinator
